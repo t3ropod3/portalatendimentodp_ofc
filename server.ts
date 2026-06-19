@@ -665,6 +665,9 @@ app.get("/api/health", (req, res) => {
 // BUILD INTEGRATIONS & SERVER ASSETS
 // ----------------------
 
+// Export app for Vercel serverless
+export default app;
+
 async function startServer() {
   // Setup tables & seeds before launching
   await initializeDbSchema();
@@ -685,9 +688,20 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Express application active on http://0.0.0.0:${PORT}`);
-  });
+  // Only listen if not running in a serverless environment like Vercel
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Express application active on http://0.0.0.0:${PORT}`);
+    });
+  }
 }
 
-startServer();
+// Start server locally or in standard container deployed environments
+if (!process.env.VERCEL) {
+  startServer();
+} else {
+  // On Vercel, we need to ensure the database schema is initialized if possible.
+  // Serverless functions are stateless, so we'll init synchronously or let the endpoints handle connections.
+  // For Neon serverless, postgres connection works directly in handlers.
+  initializeDbSchema().catch(console.error);
+}

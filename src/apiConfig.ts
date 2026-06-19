@@ -22,7 +22,7 @@ export function getApiUrl(path: string): string {
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isProductionBackend = hostname.endsWith('.run.app') || hostname.endsWith('.google.com') || hostname.endsWith('.aistudio.google');
 
-  if (!isLocalHost && !isProductionBackend) {
+  if (!isLocalHost && !isProductionBackend && !isVercel) {
     // Return our stable Shared App URL as the fallback backend
     const stableBackend = 'https://ais-pre-rild7f6psslcmihyj7lza7-82519637447.us-east1.run.app';
     const finalUrl = `${stableBackend}${cleanPath}`;
