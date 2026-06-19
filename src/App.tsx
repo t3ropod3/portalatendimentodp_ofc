@@ -148,7 +148,7 @@ export default function App() {
 
   useEffect(() => {
     refreshDatabase();
-  }, [currentUser]);
+  }, [currentUser, activeTab, selectedTicket]);
 
   // Auth form states
   const [loginName, setLoginName] = useState('');
@@ -349,6 +349,9 @@ export default function App() {
   };
 
   const handleSelectTicketFromNew = (protocol: string) => {
+    // Sync local state first
+    refreshDatabase();
+    
     // Navigate list instantly
     setActiveTab('atendimentos');
     setSelectedTicket(null);
