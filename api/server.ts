@@ -87,6 +87,12 @@ let localTickets: any[] = [];
 let localHistory: any[] = [];
 let localNotifications: any[] = [];
 
+// Local fallback in-memory backup storage (requested to remain only in DB/server state, not exposed in UI)
+let localUsersBackup: any[] = [];
+let localTicketsBackup: any[] = [];
+let localHistoryBackup: any[] = [];
+let localNotificationsBackup: any[] = [];
+
 if (DATABASE_URL) {
   try {
     sql = neon(DATABASE_URL);
@@ -187,6 +193,79 @@ async function initializeDbSchema() {
         protocolo VARCHAR(50),
         lida BOOLEAN DEFAULT FALSE,
         tipo VARCHAR(50) NOT NULL
+      )
+    `;
+
+    // DATA BACKUP TABLES SCHEMA Setup
+    await sql`
+      CREATE TABLE IF NOT EXISTS usuarios_backup (
+        backup_id VARCHAR(50) NOT NULL,
+        backup_data_hora VARCHAR(50) NOT NULL,
+        id VARCHAR(50) NOT NULL,
+        nome VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL,
+        senha VARCHAR(255) NOT NULL,
+        perfil VARCHAR(50) NOT NULL,
+        empresa VARCHAR(50) NOT NULL,
+        ativo VARCHAR(10) DEFAULT 'Sim',
+        PRIMARY KEY (backup_id, id)
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS atendimentos_backup (
+        backup_id VARCHAR(50) NOT NULL,
+        backup_data_hora VARCHAR(50) NOT NULL,
+        id VARCHAR(50) NOT NULL,
+        protocolo VARCHAR(50) NOT NULL,
+        assunto VARCHAR(200) NOT NULL,
+        categoria VARCHAR(100),
+        descricao TEXT NOT NULL,
+        solicitacao VARCHAR(100),
+        empresa VARCHAR(50) NOT NULL,
+        status VARCHAR(50) DEFAULT 'Aberto',
+        data_abertura VARCHAR(50) NOT NULL,
+        data_necessaria VARCHAR(50),
+        data_retorno VARCHAR(50),
+        data_encerramento VARCHAR(50),
+        solicitante_id VARCHAR(50) NOT NULL,
+        responsavel_id VARCHAR(50),
+        parecer TEXT,
+        anexo_nome VARCHAR(255),
+        anexo_url TEXT,
+        anexos TEXT DEFAULT '[]',
+        PRIMARY KEY (backup_id, id)
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS historico_atendimentos_backup (
+        backup_id VARCHAR(50) NOT NULL,
+        backup_data_hora VARCHAR(50) NOT NULL,
+        id VARCHAR(50) NOT NULL,
+        atendimento_id VARCHAR(50) NOT NULL,
+        usuario_id VARCHAR(50) NOT NULL,
+        data_hora VARCHAR(50) NOT NULL,
+        acao VARCHAR(100) NOT NULL,
+        observacao TEXT NOT NULL,
+        PRIMARY KEY (backup_id, id)
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS notificacoes_backup (
+        backup_id VARCHAR(50) NOT NULL,
+        backup_data_hora VARCHAR(50) NOT NULL,
+        id VARCHAR(50) NOT NULL,
+        usuario_id VARCHAR(50),
+        perfil_alvo VARCHAR(50),
+        titulo VARCHAR(150) NOT NULL,
+        mensagem TEXT NOT NULL,
+        data_hora VARCHAR(50) NOT NULL,
+        protocolo VARCHAR(50),
+        lida BOOLEAN DEFAULT FALSE,
+        tipo VARCHAR(50) NOT NULL,
+        PRIMARY KEY (backup_id, id)
       )
     `;
 
@@ -841,6 +920,139 @@ app.post("/api/admin/seed-database", async (req, res) => {
 });
 
 
+// --- SYSTEM DATA BACKUP ENGINE ---
+let lastBackupDateString = "";
+
+// Core function to copy current production records to backup tables
+async function triggerBackup() {
+  const backupId = "backup-" + Date.now();
+  const backupDataHora = new Date().toISOString();
+  console.log(`[Backup System] Initiating backup sequence. ID: ${backupId}, Time: ${backupDataHora}`);
+  
+  if (useDatabase) {
+    try {
+      // 1. Backup users
+      await sql`
+        INSERT INTO usuarios_backup (backup_id, backup_data_hora, id, nome, email, senha, perfil, empresa, ativo)
+        SELECT ${backupId}, ${backupDataHora}, id, nome, email, senha, perfil, empresa, ativo
+        FROM usuarios
+      `;
+      
+      // 2. Backup tickets/atendimentos
+      await sql`
+        INSERT INTO atendimentos_backup (
+          backup_id, backup_data_hora, id, protocolo, assunto, categoria, descricao, solicitacao, empresa, 
+          status, data_abertura, data_necessaria, data_retorno, data_encerramento, 
+          solicitante_id, responsavel_id, parecer, anexo_nome, anexo_url, anexos
+        )
+        SELECT 
+          ${backupId}, ${backupDataHora}, id, protocolo, assunto, categoria, descricao, solicitacao, empresa, 
+          status, data_abertura, data_necessaria, data_retorno, data_encerramento, 
+          solicitante_id, responsavel_id, parecer, anexo_nome, anexo_url, anexos
+        FROM atendimentos
+      `;
+      
+      // 3. Backup historical activities
+      await sql`
+        INSERT INTO historico_atendimentos_backup (backup_id, backup_data_hora, id, atendimento_id, usuario_id, data_hora, acao, observacao)
+        SELECT ${backupId}, ${backupDataHora}, id, atendimento_id, usuario_id, data_hora, acao, observacao
+        FROM historico_atendimentos
+      `;
+      
+      // 4. Backup notifications
+      await sql`
+        INSERT INTO notificacoes_backup (backup_id, backup_data_hora, id, usuario_id, perfil_alvo, titulo, mensagem, data_hora, protocolo, lida, tipo)
+        SELECT ${backupId}, ${backupDataHora}, id, usuario_id, perfil_alvo, titulo, mensagem, data_hora, protocolo, lida, tipo
+        FROM notificacoes
+      `;
+      
+      console.log(`[Backup System] Database cloud backup successfully saved to Neon for ID: ${backupId}`);
+      return { 
+        backupId, 
+        backupDataHora, 
+        usingNeon: true, 
+        message: "Backup realizado com sucesso no banco de dados Neon." 
+      };
+    } catch (dbErr: any) {
+      console.error("[Backup System] Database backup failed, error details:", dbErr);
+      throw new Error("Failed to write backup snapshot to cloud database: " + dbErr.message);
+    }
+  } else {
+    // Local memory fallback backup
+    console.log("[Backup System] No active SQL connection. Writing snapshot to localized in-memory cache.");
+    
+    localUsersBackup.push(...localUsers.map(u => ({ ...u, backup_id: backupId, backup_data_hora: backupDataHora })));
+    localTicketsBackup.push(...localTickets.map(t => ({ ...t, backup_id: backupId, backup_data_hora: backupDataHora })));
+    localHistoryBackup.push(...localHistory.map(h => ({ ...h, backup_id: backupId, backup_data_hora: backupDataHora })));
+    localNotificationsBackup.push(...localNotifications.map(n => ({ ...n, backup_id: backupId, backup_data_hora: backupDataHora })));
+    
+    console.log(`[Backup System] Memory fallback backup snapshot completed for ID: ${backupId}. Total records now backed up in backup storage: ${localTicketsBackup.length}`);
+    return {
+      backupId,
+      backupDataHora,
+      usingNeon: false,
+      message: "Backup realizado no cache local em memória (fallback)."
+    };
+  }
+}
+
+// Background cron-like scheduler to check time and execute at 07:00 ежедневно
+function startBackupScheduler() {
+  console.log("[Backup Scheduler] Initializing daily backup scheduler (Runs everyday at 07:00 America/Sao_Paulo timezone)...");
+  
+  // Checking every 30 seconds
+  setInterval(async () => {
+    const now = new Date();
+    try {
+      // Use America/Sao_Paulo timezone format to dynamically check target localized hour and minute
+      const formattedTime = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: false
+      }).format(now);
+      
+      const parts = formattedTime.split(":");
+      const hour = Number(parts[0]);
+      const minute = Number(parts[1]);
+      
+      // Execute precisely at 07:00
+      if (hour === 7 && minute === 0) {
+        const dateStr = now.toISOString().split('T')[0];
+        if (lastBackupDateString !== dateStr) {
+          lastBackupDateString = dateStr;
+          console.log(`[Backup Scheduler] Triggering automatic daily backup at 07:00 in America/Sao_Paulo timezone. Date: ${dateStr}`);
+          await triggerBackup();
+        }
+      }
+    } catch (schedErr) {
+      // Direct local clock fallback if Intl formatting / timezone lookup isn't supported or fails
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      if (hour === 7 && minute === 0) {
+        const dateStr = now.toISOString().split('T')[0];
+        if (lastBackupDateString !== dateStr) {
+          lastBackupDateString = dateStr;
+          console.log(`[Backup Scheduler] Fallback Triggering automatic daily backup at 07:00 server local time. Date: ${dateStr}`);
+          await triggerBackup().catch(console.error);
+        }
+      }
+    }
+  }, 30000);
+}
+
+// Hidden backend API route to test / manually trigger the database backups (not displayed in UI)
+app.post("/api/admin/trigger-backup", async (req, res) => {
+  try {
+    const result = await triggerBackup();
+    return res.json({ success: true, ...result });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Failed to trigger programmatic backup" });
+  }
+});
+
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", usingNeon: useDatabase });
 });
@@ -855,6 +1067,9 @@ export default app;
 async function startServer() {
   // Setup tables & seeds before launching
   await initializeDbSchema();
+
+  // Initialize background scheduler
+  startBackupScheduler();
 
   // Vite integration middleware
   if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
