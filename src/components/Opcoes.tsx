@@ -31,14 +31,14 @@ export default function Opcoes() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center space-x-3">
-          <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+          <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
             <Database className="h-6 w-6" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">Opções</h2>
-            <p className="text-sm text-slate-500">Configurações e diagnósticos do sistema.</p>
+            <p className="text-sm text-slate-500">Configurações e diagnósticos do sistema em tempo real.</p>
           </div>
         </div>
 

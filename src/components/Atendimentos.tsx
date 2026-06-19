@@ -143,11 +143,11 @@ export default function Atendimentos({
 
   const renderCompanyBadge = (empresa: Atendimento['empresa']) => {
     return empresa === 'Radar' ? (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-50 text-indigo-700 border border-indigo-150">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-50 text-indigo-600 border border-indigo-200">
         Radar
       </span>
     ) : (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-cyan-50 text-cyan-705 border border-cyan-155">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-cyan-50 text-cyan-600 border border-cyan-200">
         Proativa
       </span>
     );
@@ -157,7 +157,7 @@ export default function Atendimentos({
     <div className="space-y-6 animate-fade-in">
       
       {/* FILTER & SEARCH CONTROL BAR */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
         
         {/* Search, order and quick info */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -173,17 +173,17 @@ export default function Atendimentos({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Pesquisar por protocolo, assunto, termo..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg text-sm text-slate-800 focus:outline-hidden transition-all"
+              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl text-sm text-slate-800 focus:outline-hidden transition-all shadow-inner/5"
             />
           </div>
 
           {/* Sort selection */}
           <div className="flex items-center space-x-2.5 w-full md:w-auto justify-end">
-            <span className="text-xs font-semibold text-slate-500 uppercase">Ordenação:</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Ordenação:</span>
             <select
               value={sortBy}
               onChange={(e: any) => setSortBy(e.target.value)}
-              className="bg-slate-55/60 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 py-1.5 px-3 focus:outline-hidden cursor-pointer hover:bg-slate-100"
+              className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 py-2 px-3.5 focus:outline-hidden cursor-pointer hover:bg-slate-100 transition-colors"
             >
               <option value="abertura_desc">Abertura recente</option>
               <option value="abertura_asc">Abertura antiga</option>
@@ -194,16 +194,16 @@ export default function Atendimentos({
         </div>
 
         {/* Filters Tabs row */}
-        <div className="border-t border-slate-100 pt-4 flex flex-wrap gap-2">
+        <div className="border-t border-slate-100 pt-5 flex flex-wrap gap-2 items-center">
           
           {/* All Filter */}
           <button
             id="filter-btn-all"
             onClick={() => setActiveFilter('all')}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               activeFilter === 'all'
-                ? 'bg-indigo-900 border-indigo-900 text-white shadow-xs'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-indigo-900 border-indigo-900 text-white shadow-md shadow-indigo-900/10'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             Todos ({ticketsForCounts.length})
@@ -213,10 +213,10 @@ export default function Atendimentos({
           <button
             id="filter-btn-open"
             onClick={() => setActiveFilter('open')}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               activeFilter === 'open'
-                ? 'bg-amber-500 border-amber-500 text-white shadow-xs'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/10'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             Abertos ({ticketsForCounts.filter(t => t.status === 'Aberto').length})
@@ -226,10 +226,10 @@ export default function Atendimentos({
           <button
             id="filter-btn-inprogress"
             onClick={() => setActiveFilter('inprogress')}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               activeFilter === 'inprogress'
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-indigo-500 border-indigo-500 text-white shadow-md shadow-indigo-500/10'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             Em Atendimento ({ticketsForCounts.filter(t => t.status === 'Em Atendimento').length})
@@ -239,10 +239,10 @@ export default function Atendimentos({
           <button
             id="filter-btn-closed"
             onClick={() => setActiveFilter('closed')}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               activeFilter === 'closed'
-                ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/10'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             Encerrados ({ticketsForCounts.filter(t => t.status === 'Encerrado').length})
@@ -252,10 +252,10 @@ export default function Atendimentos({
           <button
             id="filter-btn-radar"
             onClick={() => setActiveFilter('radar')}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               activeFilter === 'radar'
-                ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-indigo-650 border-indigo-650 text-white shadow-md shadow-indigo-600/10'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             Radar ({ticketsForCounts.filter(t => t.empresa === 'Radar').length})
@@ -265,10 +265,10 @@ export default function Atendimentos({
           <button
             id="filter-btn-proativa"
             onClick={() => setActiveFilter('proativa')}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               activeFilter === 'proativa'
-                ? 'bg-cyan-500 border-cyan-500 text-white shadow-xs'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-cyan-600 border-cyan-600 text-white shadow-md shadow-cyan-600/10'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             Proativa ({ticketsForCounts.filter(t => t.empresa === 'Proativa').length})
@@ -279,10 +279,10 @@ export default function Atendimentos({
             <button
               id="filter-btn-my-tickets"
               onClick={() => setActiveFilter('my-tickets')}
-              className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border ml-auto transition-all ${
+              className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border md:ml-auto transition-all ${
                 activeFilter === 'my-tickets'
-                  ? 'bg-indigo-600 border-indigo-650 text-white shadow-xs'
-                  : 'bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50/60'
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/10'
+                  : 'bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50'
               }`}
             >
               Minhas Solicitações ({tickets.filter(t => t.solicitante_id === currentUser.id).length})
@@ -294,13 +294,13 @@ export default function Atendimentos({
       </div>
 
       {/* TICKETS LIST CONTAINER */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         
         {/* DESKTOP TABLE VIEW */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-indigo-900 text-indigo-100 text-[10px] font-bold uppercase tracking-wider border-b border-indigo-805">
+              <tr className="bg-indigo-900 text-indigo-100 text-[10px] font-bold uppercase tracking-wider border-b border-indigo-950">
                 <th className="py-4 px-6">Protocolo</th>
                 <th className="py-4 px-6">Assunto / Categoria</th>
                 <th className="py-4 px-6 text-center">Empresa</th>
@@ -312,7 +312,7 @@ export default function Atendimentos({
                 <th className="py-4 px-6 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-150">
+            <tbody className="divide-y divide-slate-100">
               {filteredTickets.map((ticket) => {
                 const solicitanteName = getUserNameById(ticket.solicitante_id);
                 const responsavelName = ticket.responsavel_id ? getUserNameById(ticket.responsavel_id) : '--';
@@ -321,17 +321,17 @@ export default function Atendimentos({
                   <tr 
                     key={ticket.id}
                     onClick={() => onSelectTicket(ticket)}
-                    className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                    className="hover:bg-indigo-50/20 transition-all cursor-pointer group"
                   >
                     {/* Protocol */}
-                    <td className="py-4 px-6 font-mono font-bold text-xs text-indigo-600 tracking-wider">
+                    <td className="py-4 px-6 font-mono font-bold text-xs text-indigo-700 tracking-wider">
                       {ticket.protocolo}
                     </td>
                     
                     {/* Subject */}
                     <td className="py-4 px-6 max-w-sm">
-                      <p className="text-sm font-bold text-slate-850 truncate group-hover:text-indigo-600 transition-colors">{ticket.assunto}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5 truncate">{ticket.solicitacao}</p>
+                      <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{ticket.assunto}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5 font-medium truncate">{ticket.solicitacao}</p>
                     </td>
                     
                     {/* Company */}
@@ -340,22 +340,22 @@ export default function Atendimentos({
                     </td>
 
                     {/* Solicitante */}
-                    <td className="py-4 px-6 text-xs text-slate-650 font-semibold truncate max-w-[120px]">
+                    <td className="py-4 px-6 text-xs text-slate-600 font-medium truncate max-w-[124px]">
                       {solicitanteName}
                     </td>
 
                     {/* Data Abertura */}
-                    <td className="py-4 px-6 text-xs text-slate-500 font-medium">
+                    <td className="py-4 px-6 text-xs text-slate-550 font-medium">
                       {new Date(ticket.data_abertura).toLocaleDateString('pt-BR')}
                     </td>
 
                     {/* Data Necessaria */}
-                    <td className="py-4 px-6 text-xs text-slate-500 font-medium">
+                    <td className="py-4 px-6 text-xs text-slate-550 font-medium">
                       {new Date(ticket.data_necessaria + 'T00:00:00').toLocaleDateString('pt-BR')}
                     </td>
 
                     {/* Responsavel */}
-                    <td className="py-4 px-6 text-xs text-slate-600 font-semibold truncate max-w-[120px]">
+                    <td className="py-4 px-6 text-xs text-slate-600 font-medium truncate max-w-[124px]">
                       {responsavelName}
                     </td>
 
@@ -366,7 +366,7 @@ export default function Atendimentos({
 
                     {/* Actions button */}
                     <td className="py-4 px-6 text-center">
-                      <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-slate-100 text-slate-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-slate-50 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                         <ArrowRight className="h-3.5 w-3.5" />
                       </span>
                     </td>
@@ -378,7 +378,7 @@ export default function Atendimentos({
         </div>
 
         {/* MOBILE CARDS VIEW */}
-        <div className="block md:hidden divide-y divide-slate-150">
+        <div className="block md:hidden divide-y divide-slate-100">
           {filteredTickets.map((ticket) => {
             const solicitanteName = getUserNameById(ticket.solicitante_id);
             const responsavelName = ticket.responsavel_id ? getUserNameById(ticket.responsavel_id) : '--';
@@ -399,13 +399,13 @@ export default function Atendimentos({
                 <h5 className="font-bold text-slate-900 text-sm mb-1">{ticket.assunto}</h5>
                 <p className="text-xs text-slate-400 mb-3">{ticket.solicitacao}</p>
 
-                <div className="grid grid-cols-2 gap-y-2 mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                <div className="grid grid-cols-2 gap-y-3 mt-4 pt-4 border-t border-slate-100 text-[11px] text-slate-500">
                   <div className="flex items-center space-x-1.5">
                     <Building2 className="h-3.5 w-3.5 text-slate-400" />
                     <span>{renderCompanyBadge(ticket.empresa)}</span>
                   </div>
                   <div className="flex items-center space-x-1.5">
-                    <User className="h-3.5 w-3.5 text-slate-400 animate-pulse-slow" />
+                    <User className="h-3.5 w-3.5 text-slate-400" />
                     <span className="truncate max-w-[110px] font-semibold">{solicitanteName}</span>
                   </div>
                   <div className="flex items-center space-x-1.5">
@@ -419,7 +419,7 @@ export default function Atendimentos({
                 </div>
 
                 {responsavelName !== '--' && (
-                  <div className="mt-3 text-xs bg-slate-50 px-2.5 py-1 rounded inline-flex items-center space-x-1.5 text-slate-650 font-medium">
+                  <div className="mt-3 text-xs bg-slate-50 px-2.5 py-1 rounded inline-flex items-center space-x-1.5 text-slate-600 font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"></span>
                     <span>Tutor: {responsavelName}</span>
                   </div>
@@ -431,7 +431,7 @@ export default function Atendimentos({
 
         {/* EMPTY STATE */}
         {filteredTickets.length === 0 && (
-          <div className="p-12 text-center text-slate-705">
+          <div className="p-12 text-center text-slate-500">
             <Inbox className="h-10 w-10 text-slate-300 mx-auto mb-3" />
             <h5 className="font-bold text-slate-800 text-base">Nenhuma solicitação encontrada</h5>
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">

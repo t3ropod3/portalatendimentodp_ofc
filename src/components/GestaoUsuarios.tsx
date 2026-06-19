@@ -260,7 +260,7 @@ export default function GestaoUsuarios({
     <div className="space-y-6 animate-fade-in">
       
       {/* Informative Banner */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
             <Users className="h-5 w-5 text-indigo-600 animate-pulse-slow" />
@@ -304,7 +304,7 @@ export default function GestaoUsuarios({
             </div>
           )}
           {dbErrorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-850 text-xs font-semibold rounded-lg flex items-center gap-2">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-lg flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />
               <span>{dbErrorMsg}</span>
             </div>
@@ -316,7 +316,7 @@ export default function GestaoUsuarios({
         
         {/* LEFT COLUMN: USER FORM (CREATE & EDIT) */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden sticky top-6">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden sticky top-6">
             
             <div className="bg-slate-900 text-white px-5 py-4 border-b border-slate-850 flex items-center space-x-2.5">
               <UserPlus className="h-4.5 w-4.5 text-indigo-400" />
@@ -478,10 +478,10 @@ export default function GestaoUsuarios({
 
         {/* RIGHT COLUMN: USERS LIST TABLE */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
             
             {/* Search filter banner block */}
-            <div className="p-4 border-b border-slate-105 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Lista de Usuários Cadastrados</span>
               <div className="relative w-full sm:max-w-xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -509,7 +509,7 @@ export default function GestaoUsuarios({
                     <th className="py-3 px-5 text-center">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-150">
+                <tbody className="divide-y divide-slate-100">
                   {filteredUsers.map((user) => {
                     const isSelf = user.id === currentUser.id;
                     const isActive = user.ativo === 'Sim';
@@ -522,7 +522,7 @@ export default function GestaoUsuarios({
                         {/* Name and Email */}
                         <td className="py-3 px-5">
                           <div className="px-1 py-0.5">
-                            <p className="text-xs font-bold text-slate-850 flex items-center">
+                            <p className="text-xs font-bold text-slate-800 flex items-center">
                               {user.nome}
                               {isSelf && (
                                 <span className="ml-1.5 px-1 bg-indigo-100 text-indigo-700 text-[9px] rounded font-bold uppercase tracking-wide">Você</span>
@@ -533,9 +533,9 @@ export default function GestaoUsuarios({
                         </td>
 
                         {/* Company */}
-                        <td className="py-3 px-5 text-xs text-slate-650 font-bold">
+                        <td className="py-3 px-5 text-xs text-slate-600 font-bold">
                           {user.empresa === 'Radar' ? (
-                            <span className="text-indigo-650">Corp. Radar</span>
+                            <span className="text-indigo-600">Corp. Radar</span>
                           ) : user.empresa === 'Proativa' ? (
                             <span className="text-cyan-500">Corp. Proativa</span>
                           ) : (
@@ -547,8 +547,8 @@ export default function GestaoUsuarios({
                         <td className="py-3 px-5">
                           <span className={`inline-flex px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
                             user.perfil === 'Administrador' 
-                              ? 'bg-indigo-105 text-indigo-800 border border-indigo-200' 
-                              : 'bg-slate-100 text-slate-600 border border-slate-200'
+                              ? 'bg-indigo-50 text-indigo-800 border border-indigo-200' 
+                              : 'bg-slate-150 text-slate-600 border border-slate-200'
                           }`}>
                             {user.perfil}
                           </span>
@@ -562,7 +562,7 @@ export default function GestaoUsuarios({
                               Ativo
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-rose-50 text-rose-800 border border-rose-150" title="Inativo">
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-rose-50 text-rose-800 border border-rose-200" title="Inativo">
                               <UserX className="h-3 w-3 mr-1" />
                               Bloqueado
                             </span>
@@ -575,9 +575,9 @@ export default function GestaoUsuarios({
                             type="button"
                             id={`btn-edit-user-${user.id}`}
                             onClick={() => handleEditClick(user)}
-                            className="p-1 px-2.5 border border-slate-200 rounded text-slate-600 hover:text-indigo-650 hover:bg-slate-50 transition-all font-semibold text-[10/5px] uppercase cursor-pointer"
+                            className="p-1 px-2.5 border border-slate-200 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all font-semibold text-[10px] uppercase cursor-pointer"
                           >
-                            <Edit3 className="h-3.5 w-3.5 inline-block" />
+                            <Edit3 className="h-3.5 w-3.5 inline-block cursor-pointer" />
                           </button>
                           
                           {!isSelf && (
@@ -585,9 +585,9 @@ export default function GestaoUsuarios({
                               type="button"
                               id={`btn-delete-user-${user.id}`}
                               onClick={() => handleDeleteClick(user)}
-                              className="p-1 px-2.5 border border-rose-200 rounded text-rose-600 hover:text-white hover:bg-rose-600 transition-all font-semibold text-[10/5px] uppercase cursor-pointer"
+                              className="p-1 px-2.5 border border-rose-200 rounded-lg text-rose-600 hover:text-white hover:bg-rose-600 transition-all font-semibold text-[10px] uppercase cursor-pointer"
                             >
-                              <Trash2 className="h-3.5 w-3.5 inline-block" />
+                              <Trash2 className="h-3.5 w-3.5 inline-block cursor-pointer" />
                             </button>
                           )}
                         </td>

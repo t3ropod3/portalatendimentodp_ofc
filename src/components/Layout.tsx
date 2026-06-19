@@ -70,7 +70,7 @@ export default function Layout({
         {/* User Card */}
         <div className="px-6 py-5 border-b border-indigo-800/80 bg-indigo-950/40">
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-indigo-950 border border-indigo-750 flex items-center justify-center text-amber-550 font-semibold uppercase">
+            <div className="h-10 w-10 rounded-full bg-indigo-950 border border-indigo-800 flex items-center justify-center text-amber-400 font-semibold uppercase">
               {currentUser.nome.substring(0, 2)}
             </div>
             <div className="min-w-0 flex-1">
@@ -144,7 +144,7 @@ export default function Layout({
             onRefresh={onRefreshNotifications}
             alignEnd={true}
           />
-          <span className="text-xs text-indigo-150 max-w-[120px] truncate">{currentUser.nome}</span>
+          <span className="text-xs text-indigo-200 max-w-[120px] truncate">{currentUser.nome}</span>
           <button
             id="mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

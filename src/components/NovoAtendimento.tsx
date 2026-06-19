@@ -190,7 +190,7 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
 
   if (successProtocol) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-xl border border-emerald-200 p-8 text-center shadow-md animate-scale-in">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-emerald-200 p-8 text-center shadow-md animate-scale-in">
         <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-200">
           <Check className="w-8 h-8" />
         </div>
@@ -199,9 +199,9 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
         <p className="text-sm text-slate-500 mt-2">
           Sua demanda foi protocolada com sucesso e já está disponível para análise da equipe de Departamento Pessoal.
         </p>
-
+ 
         {/* Protocol display badge */}
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 my-6 max-w-sm mx-auto flex items-center justify-between">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 my-6 max-w-sm mx-auto flex items-center justify-between">
           <div className="text-left">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">NÚMERO DO PROTOCOLO</span>
             <span id="created-protocol-id" className="text-lg font-mono font-bold text-indigo-600 tracking-wider mt-1 block">
@@ -211,25 +211,25 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
           <button 
             type="button"
             onClick={handleCopyProtocol}
-            className="p-2.5 bg-white text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 active:bg-slate-100 transition-all cursor-pointer shadow-xs group"
+            className="p-2.5 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-all cursor-pointer shadow-xs group"
             title="Copiar Protocolo"
           >
             <Copy className="h-4.5 w-4.5 text-slate-500 group-hover:text-indigo-600" />
           </button>
         </div>
-
+ 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             id="btn-goto-atendimentos"
             onClick={() => onSuccess(successProtocol)}
-            className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm transition-colors cursor-pointer"
           >
             Ver meus chamados
           </button>
           <button
             id="btn-new-another-ticket"
             onClick={() => setSuccessProtocol('')}
-            className="w-full sm:w-auto px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-705 font-medium rounded-lg text-sm transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-6 py-2.5 bg-slate-100 hover:bg-slate-100 text-slate-700 font-medium rounded-xl text-sm transition-colors cursor-pointer"
           >
             Abrir outro chamado
           </button>
@@ -237,7 +237,7 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
       </div>
     );
   }
-
+ 
   // Get formatted date today for date picker min
   const getMinDateString = () => {
     const today = new Date();
@@ -246,12 +246,12 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
     const d = String(today.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   };
-
+ 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
       
       {/* Visual Header Banner */}
-      <div className="bg-indigo-900 px-8 py-6 text-white border-b border-indigo-800 flex items-center space-x-4">
+      <div className="bg-indigo-900 px-8 py-6 text-white border-b border-indigo-950 flex items-center space-x-4">
         <div className="p-3 bg-amber-500 rounded-lg text-white font-bold shrink-0 shadow-lg shadow-amber-500/20">
           <PlusCircle className="h-6 w-6" />
         </div>

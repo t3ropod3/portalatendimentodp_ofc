@@ -176,9 +176,9 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
     <div className="space-y-8 animate-fade-in">
       
       {/* Title block */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2.5">
             <BarChart3 className="h-5 w-5 text-indigo-600" />
             Consolidado de Indicadores — DP
           </h2>
@@ -186,9 +186,9 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
             Métricas de desempenho de chamados abertos e resolvidos para as empresas Radar e Proativa.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+        <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
           <Clock className="h-4 w-4 text-slate-500" />
-          <span className="text-xs text-slate-700 font-semibold uppercase">Atualizado em tempo real</span>
+          <span className="text-xs text-slate-700 font-semibold uppercase tracking-wider">Atualizado em tempo real</span>
         </div>
       </div>
 
@@ -201,15 +201,15 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
           tabIndex={0}
           onClick={() => onSelectMetricCard?.('all')}
           onKeyDown={(e) => e.key === 'Enter' && onSelectMetricCard?.('all')}
-          className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center space-x-4 hover:shadow-md hover:border-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 hover:shadow-md hover:border-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
         >
-          <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+          <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600 group-hover:bg-indigo-100 transition-colors">
             <Ticket className="h-6 w-6" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Geral</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{statistics.total}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5 group-hover:text-indigo-500 font-medium">Ver todas as solicitações →</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{statistics.total}</h3>
+            <p className="text-[10px] text-indigo-500 font-semibold mt-0.5 group-hover:underline">Ver todas →</p>
           </div>
         </div>
 
@@ -219,15 +219,15 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
           tabIndex={0}
           onClick={() => onSelectMetricCard?.('open')}
           onKeyDown={(e) => e.key === 'Enter' && onSelectMetricCard?.('open')}
-          className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center space-x-4 hover:shadow-md hover:border-amber-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 hover:shadow-md hover:border-amber-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
         >
-          <div className="p-3 bg-amber-50 rounded-lg text-amber-600 group-hover:bg-amber-100 transition-colors">
+          <div className="p-3 bg-amber-50 rounded-xl text-amber-600 group-hover:bg-amber-100 transition-colors">
             <AlertCircle className="h-6 w-6" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Abertos</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{statistics.abertos}</h3>
-            <p className="text-[10px] text-amber-600 font-medium mt-0.5">Filtrar por abertos →</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{statistics.abertos}</h3>
+            <p className="text-[10px] text-amber-600 font-semibold mt-0.5 group-hover:underline">Filtrar →</p>
           </div>
         </div>
 
@@ -237,15 +237,15 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
           tabIndex={0}
           onClick={() => onSelectMetricCard?.('inprogress')}
           onKeyDown={(e) => e.key === 'Enter' && onSelectMetricCard?.('inprogress')}
-          className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center space-x-4 hover:shadow-md hover:border-blue-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 hover:shadow-md hover:border-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
         >
-          <div className="p-3 bg-blue-50 rounded-lg text-blue-600 group-hover:bg-blue-100 transition-colors">
+          <div className="p-3 bg-indigo-50 rounded-xl text-indigo-500 group-hover:bg-indigo-100 transition-colors">
             <Clock className="h-6 w-6" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Em Andamento</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{statistics.emAtendimento}</h3>
-            <p className="text-[10px] text-blue-600 font-medium mt-0.5">Filtrar por em andamento →</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{statistics.emAtendimento}</h3>
+            <p className="text-[10px] text-indigo-500 font-semibold mt-0.5 group-hover:underline">Filtrar →</p>
           </div>
         </div>
 
@@ -255,15 +255,15 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
           tabIndex={0}
           onClick={() => onSelectMetricCard?.('closed')}
           onKeyDown={(e) => e.key === 'Enter' && onSelectMetricCard?.('closed')}
-          className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center space-x-4 hover:shadow-md hover:border-emerald-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 hover:shadow-md hover:border-emerald-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
         >
-          <div className="p-3 bg-emerald-50 rounded-lg text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 group-hover:bg-emerald-100 transition-colors">
             <CheckCircle className="h-6 w-6" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Encerrados</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{statistics.encerrados}</h3>
-            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Filtrar por encerrados →</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{statistics.encerrados}</h3>
+            <p className="text-[10px] text-emerald-600 font-semibold mt-0.5 group-hover:underline">Filtrar →</p>
           </div>
         </div>
 
@@ -273,15 +273,15 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
           tabIndex={0}
           onClick={() => onSelectMetricCard?.('closed')}
           onKeyDown={(e) => e.key === 'Enter' && onSelectMetricCard?.('closed')}
-          className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center space-x-4 hover:shadow-md hover:border-cyan-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 hover:shadow-md hover:border-cyan-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group outline-hidden"
         >
-          <div className="p-3 bg-cyan-50 rounded-lg text-cyan-600 group-hover:bg-cyan-100 transition-colors">
+          <div className="p-3 bg-cyan-50 rounded-xl text-cyan-600 group-hover:bg-cyan-100 transition-colors">
             <Clock className="h-6 w-6" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tempo Médio</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{statistics.avgTimeText}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5 group-hover:text-cyan-500 font-medium">Retorno conclusivo →</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{statistics.avgTimeText}</h3>
+            <p className="text-[10px] text-cyan-600 font-semibold mt-0.5">Até encerramento</p>
           </div>
         </div>
 
@@ -291,7 +291,7 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* EVOLUÇÃO MENSAL (Line Chart) */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
           <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Evolução Mensal de Atendimentos (2026)</h4>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -325,7 +325,7 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
         </div>
 
         {/* DISTRIBUIÇÃO STATUS (Pie Chart) */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
           <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Distribuição por Status</h4>
           <div className="h-48 flex items-center justify-center relative">
             {statistics.statusData.length === 0 ? (
@@ -379,7 +379,7 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* COMPARATIVO RADAR x PROATIVA */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center justify-between">
             <span>Comparativo Radar x Proativa</span>
             <Building2 className="h-4 w-4 text-slate-400" />
@@ -405,7 +405,7 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
               <div className="flex-1">
                 <div className="flex justify-between items-center text-xs mb-1">
                   <span className="font-semibold text-indigo-600">Empresa Radar</span>
-                  <span className="font-bold text-slate-705">{statistics.radarCount} chamados</span>
+                  <span className="font-bold text-slate-700">{statistics.radarCount} chamados</span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div 
@@ -417,7 +417,7 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
               <div className="flex-1">
                 <div className="flex justify-between items-center text-xs mb-1">
                   <span className="font-semibold text-cyan-500">Empresa Proativa</span>
-                  <span className="font-bold text-slate-705">{statistics.proativaCount} chamados</span>
+                  <span className="font-bold text-slate-700">{statistics.proativaCount} chamados</span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div 
@@ -431,7 +431,7 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
         </div>
 
         {/* TIPO DE SOLICITAÇÃO & SOLICITANTE */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
           
           {/* Top Categories */}
           <div className="flex-1">

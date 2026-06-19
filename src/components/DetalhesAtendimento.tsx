@@ -167,19 +167,19 @@ export default function DetalhesAtendimento({
     switch (status) {
       case 'Aberto':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-100 text-amber-850 border border-amber-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
             Aberto
           </span>
         );
       case 'Em Atendimento':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-850 border border-blue-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
             Em Atendimento
           </span>
         );
       case 'Encerrado':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-emerald-100 text-emerald-850 border border-emerald-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
             Encerrado
           </span>
         );
@@ -211,10 +211,10 @@ export default function DetalhesAtendimento({
         <div className="lg:col-span-2 space-y-6">
           
           {/* Main Details Card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             
             {/* Ticket Subject Header */}
-            <div className="bg-indigo-900 text-white px-6 py-5 border-b border-indigo-805">
+            <div className="bg-indigo-900 text-white px-6 py-5 border-b border-indigo-950">
               <span className="text-[10px] bg-amber-500 text-white font-bold tracking-widest uppercase px-2.5 py-1 rounded-md shadow-sm">
                 Protocolo: {ticket.protocolo}
               </span>
@@ -254,7 +254,7 @@ export default function DetalhesAtendimento({
               {/* Description box */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Descrição do Chamado</h4>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
                   {ticket.descricao}
                 </div>
               </div>
@@ -305,10 +305,10 @@ export default function DetalhesAtendimento({
           </div>
 
           {/* RESPONSE / ATENDIMENTO AREA */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="border-b border-slate-100 px-6 py-4 bg-slate-50 flex items-center justify-between">
               <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
-                <MessageSquare className="h-4 w-4 mr-2 text-indigo-500" />
+                <MessageSquare className="h-4 w-4 mr-2 text-indigo-600" />
                 Área de Retorno / Atendimento (DP)
               </h4>
               <span className="text-xs text-slate-400">Responsabilidade do DP</span>
@@ -334,8 +334,8 @@ export default function DetalhesAtendimento({
                 <form onSubmit={handleSaveAtendimento} className="space-y-4">
                   
                   {ticket.status === 'Encerrado' ? (
-                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                      <div className="flex items-center space-x-2 text-indigo-805 text-sm font-bold">
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                      <div className="flex items-center space-x-2 text-indigo-800 text-sm font-bold">
                         <CheckCircle className="h-5 w-5 text-indigo-600" />
                         <span>Chamado Encerrado</span>
                       </div>
@@ -344,7 +344,7 @@ export default function DetalhesAtendimento({
                         {ticket.data_retorno && <p><strong>Data de Retorno:</strong> {new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} {new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
                         {ticket.data_encerramento && <p><strong>Data do Fim:</strong> {new Date(ticket.data_encerramento).toLocaleDateString('pt-BR')} {new Date(ticket.data_encerramento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
                       </div>
-                      <div className="p-3 bg-white border border-slate-150 rounded-lg text-xs leading-relaxed whitespace-pre-wrap text-slate-700">
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700">
                         <strong>Resposta/Parecer final do DP:</strong><br/>
                         {ticket.parecer || '(Nenhum parecer digitado)'}
                       </div>
@@ -359,7 +359,7 @@ export default function DetalhesAtendimento({
                           <select
                             value={responsavelId}
                             onChange={(e) => setResponsavelId(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-755 py-2 px-3 focus:outline-hidden cursor-pointer"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 py-2.5 px-3 focus:outline-hidden cursor-pointer"
                             required
                           >
                             <option value="">-- Escolher Responsável --</option>
@@ -373,7 +373,7 @@ export default function DetalhesAtendimento({
 
                         <div className="space-y-1.5">
                           <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Data de Retorno</label>
-                          <div className="bg-slate-100 text-slate-500 rounded-lg text-xs font-bold py-2.5 px-3 border border-slate-200">
+                          <div className="bg-slate-100 text-slate-500 rounded-xl text-xs font-bold py-2.5 px-3 border border-slate-200">
                             {ticket.data_retorno 
                               ? `${new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} às ${new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` 
                               : 'Registrado ao salvar resposta'}
@@ -389,7 +389,7 @@ export default function DetalhesAtendimento({
                           onChange={(e) => setParecer(e.target.value)}
                           rows={4}
                           placeholder="Digite aqui o parecer técnico do DP ou a resposta esclarecedora sobre esta solicitação..."
-                          className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg text-xs text-slate-800 focus:outline-hidden transition-all"
+                          className="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl text-xs text-slate-800 focus:outline-hidden transition-all"
                         />
                       </div>
 
@@ -421,24 +421,24 @@ export default function DetalhesAtendimento({
                 // STANDARD USER RESPONSE INFORMATIVE VIEW
                 <div className="space-y-4">
                   {ticket.parecer ? (
-                    <div className="space-y-4 bg-slate-50 border border-slate-200 p-5 rounded-xl">
+                    <div className="space-y-4 bg-slate-50 border border-slate-200 p-5 rounded-2xl">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-indigo-650 font-bold uppercase block tracking-wider">Resposta da equipe de DP</span>
+                        <span className="text-xs text-indigo-600 font-bold uppercase block tracking-wider">Resposta da equipe de DP</span>
                         <span className="text-[10px] text-slate-400">Atendido por: <strong>{responsavelName}</strong></span>
                       </div>
                       
-                      <div className="p-4 bg-white border border-slate-150 rounded-lg text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">
+                      <div className="p-4 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">
                         {ticket.parecer}
                       </div>
 
                       {ticket.data_retorno && (
-                        <div className="text-[10px] text-slate-450 text-right">
+                        <div className="text-[10px] text-slate-400 text-right">
                           Retornado em: {new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} às {new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="p-6 text-center bg-amber-50 text-amber-800 border border-amber-150 rounded-xl">
+                    <div className="p-6 text-center bg-amber-50 text-amber-800 border border-amber-200 rounded-2xl">
                       <Clock3 className="h-8 w-8 text-amber-500 mx-auto mb-2" />
                       <p className="text-xs font-bold">Solicitação em análise</p>
                       <p className="text-[11px] text-amber-600 mt-1">A equipe de Departamento Pessoal já recebeu sua demanda. Aguarde o retorno com o parecer conclusivo.</p>
@@ -470,7 +470,7 @@ export default function DetalhesAtendimento({
         <div className="space-y-6">
           
           {/* Card header */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
             <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
               <Clock className="h-4.5 w-4.5 mr-2 text-slate-500" />
               Histórico do Chamado
@@ -478,7 +478,7 @@ export default function DetalhesAtendimento({
             <p className="text-[11px] text-slate-400">Linha do tempo das auditorias e respostas automáticas e manuais do chamado.</p>
 
             {/* Timeline UI list */}
-            <div className="relative border-l border-slate-150 pl-4 ml-2.5 py-2 space-y-6">
+            <div className="relative border-l border-slate-200 pl-4 ml-2.5 py-2 space-y-6">
               
               {ticketHistory.map((hist, idx) => {
                 const isSystem = hist.acao.includes('Abertura') || hist.acao.includes('Atribuição');
