@@ -19,7 +19,8 @@ import {
   ChevronRight, 
   Download,
   AlertCircle,
-  Clock3
+  Clock3,
+  Trash2
 } from 'lucide-react';
 import { Atendimento, Usuario, HistoricoAtendimento, Anexo } from '../types';
 import { getUsers, addHistoryRecord, getUserNameById } from '../apiServices';
@@ -30,6 +31,7 @@ interface DetalhesAtendimentoProps {
   onBack: () => void;
   onUpdateTicket: (updated: Atendimento) => void;
   history: HistoricoAtendimento[];
+  onDeleteTicket: (ticketId: string) => Promise<void>;
 }
 
 export default function DetalhesAtendimento({ 
@@ -37,12 +39,32 @@ export default function DetalhesAtendimento({
   ticket, 
   onBack, 
   onUpdateTicket,
-  history 
+  history,
+  onDeleteTicket
 }: DetalhesAtendimentoProps) {
   const [parecer, setParecer] = useState(ticket.parecer || '');
   const [responsavelId, setResponsavelId] = useState(ticket.responsavel_id || ((currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente') ? currentUser.id : ''));
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      await onDeleteTicket(ticket.id);
+      setSuccessMsg('O chamado foi excluído com sucesso!');
+      setTimeout(() => {
+        onBack();
+      }, 1200);
+    } catch (err: any) {
+      setErrorMsg('Falha ao excluir chamado: ' + err.message);
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   // Get active handlers (Administradores/Atendentes) list for allocation
   const admins = useMemo(() => {
@@ -187,18 +209,67 @@ export default function DetalhesAtendimento({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
+    <div className="space-y-6 animate-fade-in max-w-5xl mx-auto relative">
       
+      {/* Delete Confirmation Modal Overlay */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden p-6 space-y-4 animate-fade-in">
+            <div className="w-12 h-12 bg-rose-50 border border-rose-200 text-rose-600 rounded-full flex items-center justify-center">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-slate-900">Confirmar Exclusão de Chamado</h4>
+              <p className="text-xs text-slate-500 mt-1">
+                Aviso: Esta ação é irreversível e excluirá em definitivo o chamado <strong className="font-semibold text-indigo-600">{ticket.protocolo}</strong>, incluindo toda a linha do tempo do seu histórico de atendimento.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer text-center"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center space-x-1.5"
+              >
+                {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Visual top bar header with back btn */}
-      <div className="flex items-center justify-between">
-        <button
-          id="btn-back-to-list"
-          onClick={onBack}
-          className="cursor-pointer inline-flex items-center px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase rounded-lg transition-colors shadow-xs"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar para Lista
-        </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center space-x-2">
+          <button
+            id="btn-back-to-list"
+            onClick={onBack}
+            className="cursor-pointer inline-flex items-center px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase rounded-lg transition-colors shadow-xs"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para Lista
+          </button>
+          
+          {(currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente' || ticket.solicitante_id === currentUser.id) && (
+            <button
+              type="button"
+              id="btn-delete-ticket"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="cursor-pointer inline-flex items-center px-4 py-2 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-750 text-xs font-bold uppercase rounded-lg transition-colors shadow-xs"
+            >
+              <Trash2 className="h-4 w-4 mr-2 text-rose-500" />
+              Excluir Chamado
+            </button>
+          )}
+        </div>
         <div className="flex items-center space-x-2">
           <span className="text-xs font-semibold text-slate-500 uppercase">Status Atual:</span>
           {renderStatusBadge(ticket.status)}

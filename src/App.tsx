@@ -18,7 +18,8 @@ import {
   markAsRead,
   markAllAsRead,
   clearNotifications,
-  updateTicket
+  updateTicket,
+  deleteTicket
 } from './apiServices';
 import { Usuario, Atendimento, HistoricoAtendimento, FilterType, Notificacao } from './types';
 import Layout from './components/Layout';
@@ -357,6 +358,12 @@ export default function App() {
     setSelectedTicket(updated);
   };
 
+  const handleDeleteTicket = async (ticketId: string) => {
+    await deleteTicket(ticketId);
+    refreshDatabase();
+    setSelectedTicket(null);
+  };
+
   const handleSelectTicketFromNew = (protocol: string) => {
     // Sync local state first
     refreshDatabase();
@@ -643,6 +650,7 @@ export default function App() {
                 onBack={() => setSelectedTicket(null)}
                 onUpdateTicket={handleUpdateTicket}
                 history={history}
+                onDeleteTicket={handleDeleteTicket}
               />
             ) : (
               <Atendimentos 

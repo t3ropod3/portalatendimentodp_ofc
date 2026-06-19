@@ -646,6 +646,32 @@ app.put("/api/tickets/:id", async (req, res) => {
   }
 });
 
+app.delete("/api/tickets/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (useDatabase) {
+      // Clean up historico_atendimentos first to prevent orphan references
+      await sql`DELETE FROM historico_atendimentos WHERE atendimento_id = ${id}`;
+      
+      const deleted = await sql`
+        DELETE FROM atendimentos 
+        WHERE id = ${id}
+        RETURNING id
+      `;
+      if (deleted.length === 0) return res.status(404).json({ error: "Atendimento não encontrado." });
+      return res.json({ success: true, id: deleted[0].id });
+    } else {
+      const index = localTickets.findIndex(t => t.id === id);
+      if (index === -1) return res.status(404).json({ error: "Atendimento não encontrado." });
+      localTickets.splice(index, 1);
+      localHistory = localHistory.filter(h => h.atendimento_id !== id);
+      return res.json({ success: true, id });
+    }
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Falha ao excluir atendimento." });
+  }
+});
+
 // History Endpoints
 app.get("/api/history", async (req, res) => {
   try {

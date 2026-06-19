@@ -246,6 +246,31 @@ export async function updateTicket(updated: Atendimento): Promise<Atendimento> {
   return savedTicket;
 }
 
+export async function deleteTicket(id: string): Promise<void> {
+  const tickets = getTickets();
+  const index = tickets.findIndex(t => t.id === id);
+  if (index === -1) throw new Error("Chamado não encontrado");
+
+  // Sync with Neon database backend
+  const res = await fetch(getApiUrl(`/api/tickets/${id}`), {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Falha ao excluir chamado no banco de dados.");
+  }
+
+  // Save changes locally
+  const remainingTickets = tickets.filter(t => t.id !== id);
+  saveTickets(remainingTickets);
+
+  // Filter history records corresponding to this ticket
+  const rawHistory = getHistory();
+  const filteredHistory = rawHistory.filter(h => h.atendimento_id !== id);
+  saveHistory(filteredHistory);
+}
+
 // History functions
 export function getHistory(): HistoricoAtendimento[] {
   initDB();
