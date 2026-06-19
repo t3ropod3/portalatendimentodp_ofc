@@ -331,31 +331,32 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
             {statistics.statusData.length === 0 ? (
               <p className="text-xs text-slate-400">Sem chamados registrados.</p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statistics.statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {statistics.statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: 'none', color: '#f8fafc' }} />
-                </PieChart>
-              </ResponsiveContainer>
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statistics.statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      {statistics.statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: 'none', color: '#f8fafc' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center Label inside Pie */}
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-2xl font-bold text-slate-800">{statistics.total}</span>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest">Chamados</span>
+                </div>
+              </>
             )}
-            
-            {/* Center Label inside Pie */}
-            <div className="absolute flex flex-col items-center">
-              <span className="text-2xl font-bold text-slate-800">{statistics.total}</span>
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest">Chamados</span>
-            </div>
           </div>
           
           {/* Custom Status Legend */}
