@@ -333,9 +333,23 @@ export default function App() {
           <div className="max-w-md w-full space-y-6 z-10 animate-fade-in">
             
             {/* Visual Head Brand Logo */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center p-3 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-650/20 mb-3 border border-indigo-500">
-                <Briefcase className="h-8 w-8 text-white" />
+            <div className="text-center flex flex-col items-center">
+              <div className="mb-6">
+                {/* O usuário deve fazer upload da imagem logo.png para a pasta public */}
+                <img 
+                  src="/logo.png" 
+                  alt="Proativa Contact Center" 
+                  className="h-28 w-auto object-contain"
+                  onError={(e) => {
+                    // Fallback visual temporário até o usuário subir o logo.png
+                    e.currentTarget.style.display = 'none';
+                    const icon = document.getElementById('fallback-icon');
+                    if(icon) icon.style.display = 'flex';
+                  }}
+                />
+                <div id="fallback-icon" className="hidden items-center justify-center p-3 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-650/20 border border-indigo-500">
+                  <Briefcase className="h-8 w-8 text-white" />
+                </div>
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-white">Painel Departamento Pessoal</h1>
               <p className="text-xs text-indigo-150 mt-1.5">Portal Unificado de Atendimentos & Gestão de Demandas</p>
@@ -419,7 +433,7 @@ export default function App() {
 
             {/* General footer */}
             <p className="text-center text-[10px] text-indigo-300 font-medium font-sans">
-              Segurança TLS 256-bit • Portal de Chamados DP • v1.1.0
+              2026 - Desenvolvido por Recursos Humanos - Keit Lima
             </p>
 
           </div>
@@ -537,7 +551,7 @@ export default function App() {
 
             {/* Rodapé */}
             <p className="text-center text-[10px] text-indigo-400 font-medium">
-              Segurança TLS 256-bit • Portal de Chamados DP • v1.1.0
+              2026 - Desenvolvido por Recursos Humanos - Keit Lima
             </p>
 
           </div>

@@ -253,8 +253,13 @@ export default function Layout({
         </header>
 
         {/* Content Body */}
-        <div id="main-scroll-container" className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
-          {children}
+        <div id="main-scroll-container" className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col justify-between">
+          <div className="flex-1">
+            {children}
+          </div>
+          <footer className="mt-12 pt-6 border-t border-slate-200 text-center text-[10px] text-slate-400 font-medium font-sans">
+            2026 - Desenvolvido por Recursos Humanos - Keit Lima
+          </footer>
         </div>
       </main>
 

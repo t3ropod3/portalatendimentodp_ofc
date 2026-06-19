@@ -673,8 +673,8 @@ async function startServer() {
 
   // Vite integration middleware
   if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
-    const viteModuleName = "vite";
-    const { createServer: createViteServer } = await import(viteModuleName);
+    const importVite = new Function('return import("vite")');
+    const { createServer: createViteServer } = await importVite();
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
