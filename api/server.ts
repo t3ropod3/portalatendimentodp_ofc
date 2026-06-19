@@ -24,6 +24,58 @@ app.use(cors({
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
+// Dynamic fast-sync of all states in a single round-trip
+app.get("/api/sync-all", async (req, res) => {
+  try {
+    if (useDatabase) {
+      const [usersRows, ticketsRows, historyRows, notificationsRows] = await Promise.all([
+        sql`SELECT id, nome, email, perfil, empresa, ativo FROM usuarios ORDER BY nome ASC`,
+        sql`SELECT * FROM atendimentos ORDER BY data_abertura DESC`,
+        sql`SELECT * FROM historico_atendimentos ORDER BY data_hora DESC`,
+        sql`SELECT * FROM notificacoes ORDER BY data_hora DESC`
+      ]);
+
+      const parsedTickets = ticketsRows.map((r: any) => {
+        try {
+          r.anexos = r.anexos ? JSON.parse(r.anexos) : [];
+        } catch (e) {
+          r.anexos = [];
+        }
+        return r;
+      });
+
+      return res.json({
+        users: usersRows,
+        tickets: parsedTickets,
+        history: historyRows,
+        notifications: notificationsRows,
+        usingNeon: true
+      });
+    } else {
+      const parsedTickets = localTickets.map(t => {
+        if (typeof t.anexos === "string") {
+          try {
+            t.anexos = JSON.parse(t.anexos);
+          } catch (e) {
+            t.anexos = [];
+          }
+        }
+        return t;
+      });
+      const safeUsers = localUsers.map(({ senha, ...u }) => u);
+      return res.json({
+        users: safeUsers,
+        tickets: parsedTickets,
+        history: localHistory,
+        notifications: localNotifications,
+        usingNeon: false
+      });
+    }
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Failed to fully sync all tables" });
+  }
+});
+
 // Database connection & fallback setups
 const DATABASE_URL = process.env.DATABASE_URL;
 let sql: any = null;
@@ -654,6 +706,139 @@ app.post("/api/notifications/clear", async (req, res) => {
 });
 
 // Admin Database Management Endpoints
+
+app.post("/api/admin/clear-database", async (req, res) => {
+  try {
+    if (useDatabase) {
+      await sql`DELETE FROM historico_atendimentos`;
+      await sql`DELETE FROM notificacoes`;
+      await sql`DELETE FROM atendimentos`;
+      await sql`DELETE FROM usuarios WHERE perfil != 'Administrador'`;
+    }
+    
+    localHistory = [];
+    localNotifications = [];
+    localTickets = [];
+    localUsers = SEED_USERS.map(u => ({ ...u, senha: bcrypt.hashSync(u.senha, 10) }));
+
+    return res.json({ success: true, message: "Banco de dados limpo com sucesso." });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Falha ao limpar o banco de dados." });
+  }
+});
+
+app.post("/api/admin/seed-database", async (req, res) => {
+  try {
+    const demoUsers = [
+      { id: 'usr-1', nome: 'Keit Proativa', email: 'keit.proativacc@gmail.com', senha: '123', perfil: 'Administrador', empresa: 'Proativa', ativo: 'Sim' },
+      { id: 'usr-2', nome: 'Elder Mendes', email: 'elder.mendes@proativacontactcenter.com.br', senha: '123', perfil: 'Administrador', empresa: 'Proativa', ativo: 'Sim' },
+      { id: 'usr-178189903368', nome: 'Monica', email: 'monica.fonseca@proativacc.com.br', senha: '123', perfil: 'Solicitante', empresa: 'Ambas', ativo: 'Sim' },
+      { id: 'usr-1781899032727', nome: 'Rosy', email: 'rosy.almeida@proativacc.com.br', senha: '123', perfil: 'Solicitante', empresa: 'Ambas', ativo: 'Sim' },
+      { id: 'usr-1781899060606', nome: 'Lorrane', email: 'lorrane.aparecida@proativacc.com.br', senha: '123', perfil: 'Atendente', empresa: 'Ambas', ativo: 'Sim' }
+    ];
+
+    const demoTickets = [
+      {
+        id: 'tk-1',
+        protocolo: '20260619-0001',
+        assunto: 'Admissão Brian Nicollas Silva',
+        categoria: 'Outros Assuntos de DP',
+        descricao: 'Processo de admissão para o colaborador recém-contratado Brian Nicollas Silva. Todos os documentos foram recebidos e estão de acordo com o padrão. Solicito encaminhar para assinatura do contrato.',
+        solicitacao: 'Admissão',
+        empresa: 'Radar',
+        status: 'Aberto',
+        data_abertura: new Date().toISOString(),
+        data_necessaria: '2026-06-22',
+        solicitante_id: 'usr-178189903368', // Monica
+        responsavel_id: null,
+        parecer: null,
+        anexos: '[]'
+      }
+    ];
+
+    const demoHistory = [
+      {
+        id: 'h-1',
+        atendimento_id: 'tk-1',
+        usuario_id: 'usr-178189903368', // Monica
+        data_hora: new Date().toISOString(),
+        acao: 'Abertura de Chamado',
+        observacao: 'Chamado protocolado e aberto sob o assunto "Admissão Brian Nicollas Silva".'
+      }
+    ];
+
+    const demoNotifs = [
+      {
+        id: 'n-1',
+        usuario_id: null,
+        perfil_alvo: 'Administrador',
+        titulo: 'Nova Solicitação Cadastrada',
+        mensagem: 'Uma nova solicitação de Admissão (Protocolo 20260619-0001) foi cadastrada por Monica.',
+        data_hora: new Date().toISOString(),
+        protocolo: '20260619-0001',
+        lida: false,
+        tipo: 'NovoTicket'
+      }
+    ];
+
+    if (useDatabase) {
+      await sql`DELETE FROM historico_atendimentos`;
+      await sql`DELETE FROM notificacoes`;
+      await sql`DELETE FROM atendimentos`;
+      await sql`DELETE FROM usuarios`;
+
+      // Insert Demo Users
+      for (const u of demoUsers) {
+        const hashed = bcrypt.hashSync(u.senha, 10);
+        await sql`
+          INSERT INTO usuarios (id, nome, email, senha, perfil, empresa, ativo)
+          VALUES (${u.id}, ${u.nome}, ${u.email}, ${hashed}, ${u.perfil}, ${u.empresa}, ${u.ativo})
+        `;
+      }
+
+      // Insert Demo Tickets
+      for (const t of demoTickets) {
+        await sql`
+          INSERT INTO atendimentos (
+            id, protocolo, assunto, categoria, descricao, solicitacao, empresa, 
+            status, data_abertura, data_necessaria, data_retorno, data_encerramento, 
+            solicitante_id, responsavel_id, parecer, anexos
+          )
+          VALUES (
+            ${t.id}, ${t.protocolo}, ${t.assunto}, ${t.categoria}, ${t.descricao}, ${t.solicitacao}, ${t.empresa},
+            ${t.status}, ${t.data_abertura}, ${t.data_necessaria}, null, null, 
+            ${t.solicitante_id}, null, null, ${t.anexos}
+          )
+        `;
+      }
+
+      // Insert Demo History
+      for (const h of demoHistory) {
+        await sql`
+          INSERT INTO historico_atendimentos (id, atendimento_id, usuario_id, data_hora, acao, observacao)
+          VALUES (${h.id}, ${h.atendimento_id}, ${h.usuario_id}, ${h.data_hora}, ${h.acao}, ${h.observacao})
+        `;
+      }
+
+      // Insert Demo Notifs
+      for (const n of demoNotifs) {
+        await sql`
+          INSERT INTO notificacoes (id, usuario_id, perfil_alvo, titulo, mensagem, data_hora, protocolo, lida, tipo)
+          VALUES (${n.id}, ${n.usuario_id}, ${n.perfil_alvo}, ${n.titulo}, ${n.mensagem}, ${n.data_hora}, ${n.protocolo}, ${n.lida}, ${n.tipo})
+        `;
+      }
+    }
+
+    localUsers = demoUsers.map(u => ({ ...u, senha: bcrypt.hashSync(u.senha, 10) }));
+    localTickets = [...demoTickets];
+    localHistory = [...demoHistory];
+    localNotifications = [...demoNotifs];
+
+    return res.json({ success: true, message: "Banco de dados de demonstração repopulado com sucesso." });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message || "Falha ao popular o banco de dados." });
+  }
+});
 
 
 app.get("/api/health", (req, res) => {

@@ -50,60 +50,69 @@ export default function App() {
     setIsSyncing(true);
     let syncedAny = false;
 
-    // Fetch and save users independently
     try {
-      const uRes = await fetch(getApiUrl('/api/users'));
-      if (uRes.ok) {
-        const uData = await uRes.json();
-        localStorage.setItem('dp_chamados_users', JSON.stringify(uData));
+      // 1. Try unified fast-sync endpoint for 1-roundtrip speed
+      const syncRes = await fetch(getApiUrl('/api/sync-all'));
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        if (syncData.users) {
+          localStorage.setItem('dp_chamados_users', JSON.stringify(syncData.users));
+        }
+        if (syncData.tickets) {
+          localStorage.setItem('dp_chamados_tickets', JSON.stringify(syncData.tickets));
+        }
+        if (syncData.history) {
+          localStorage.setItem('dp_chamados_history', JSON.stringify(syncData.history));
+        }
+        if (syncData.notifications) {
+          localStorage.setItem('dp_chamados_notifications', JSON.stringify(syncData.notifications));
+        }
         syncedAny = true;
       } else {
-        console.warn("Server responded with error when fetching users.");
+        throw new Error("Unified sync endpoint returned non-OK status");
       }
-    } catch (err) {
-      console.warn("Failed to fetch users from server:", err);
-    }
+    } catch (syncErr) {
+      console.warn("Unified sync endpoint failed. Falling back to fast parallel fetches:", syncErr);
+      
+      // 2. Fallback to fast parallel fetches so it works under any deploy status
+      const urls = {
+        users: getApiUrl('/api/users'),
+        tickets: getApiUrl('/api/tickets'),
+        history: getApiUrl('/api/history'),
+        notifications: getApiUrl('/api/notifications')
+      };
 
-    // Fetch and save tickets independently
-    try {
-      const tRes = await fetch(getApiUrl('/api/tickets'));
-      if (tRes.ok) {
-        const tData = await tRes.json();
-        localStorage.setItem('dp_chamados_tickets', JSON.stringify(tData));
-        syncedAny = true;
-      } else {
-        console.warn("Server responded with error when fetching tickets.");
-      }
-    } catch (err) {
-      console.warn("Failed to fetch tickets from server:", err);
-    }
+      try {
+        const [uRes, tRes, hRes, nRes] = await Promise.all([
+          fetch(urls.users).catch(() => null),
+          fetch(urls.tickets).catch(() => null),
+          fetch(urls.history).catch(() => null),
+          fetch(urls.notifications).catch(() => null)
+        ]);
 
-    // Fetch and save history independently
-    try {
-      const hRes = await fetch(getApiUrl('/api/history'));
-      if (hRes.ok) {
-        const hData = await hRes.json();
-        localStorage.setItem('dp_chamados_history', JSON.stringify(hData));
-        syncedAny = true;
-      } else {
-        console.warn("Server responded with error when fetching history.");
+        if (uRes && uRes.ok) {
+          const uData = await uRes.json();
+          localStorage.setItem('dp_chamados_users', JSON.stringify(uData));
+          syncedAny = true;
+        }
+        if (tRes && tRes.ok) {
+          const tData = await tRes.json();
+          localStorage.setItem('dp_chamados_tickets', JSON.stringify(tData));
+          syncedAny = true;
+        }
+        if (hRes && hRes.ok) {
+          const hData = await hRes.json();
+          localStorage.setItem('dp_chamados_history', JSON.stringify(hData));
+          syncedAny = true;
+        }
+        if (nRes && nRes.ok) {
+          const nData = await nRes.json();
+          localStorage.setItem('dp_chamados_notifications', JSON.stringify(nData));
+          syncedAny = true;
+        }
+      } catch (parallelErr) {
+        console.error("Parallel fetch fallback failed:", parallelErr);
       }
-    } catch (err) {
-      console.warn("Failed to fetch history from server:", err);
-    }
-
-    // Fetch and save notifications independently
-    try {
-      const nRes = await fetch(getApiUrl('/api/notifications'));
-      if (nRes.ok) {
-        const nData = await nRes.json();
-        localStorage.setItem('dp_chamados_notifications', JSON.stringify(nData));
-        syncedAny = true;
-      } else {
-        console.warn("Server responded with error when fetching notifications.");
-      }
-    } catch (err) {
-      console.warn("Failed to fetch notifications from server:", err);
     }
 
     if (syncedAny) {
