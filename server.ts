@@ -6,30 +6,19 @@ import { neon } from "@neondatabase/serverless";
 import { createServer as createViteServer } from "vite";
 import bcrypt from "bcryptjs";
 
+import cors from "cors";
+
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
-// Custom CORS middleware to support external deployments (e.g., Vercel)
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-  }
-  
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-  next();
-});
+// Enable standard CORS handling
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 
 // Serve large payload limits for attachments
