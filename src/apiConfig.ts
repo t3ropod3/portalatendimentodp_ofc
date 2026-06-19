@@ -16,7 +16,7 @@ export function getApiUrl(path: string): string {
   // Automatic routing based on current origin
   const hostname = window.location.hostname;
   
-  // Se estivermos em produção Vercel, use URLs relativas para que o vercel.json faça o proxy corretamente.
+  // Use relative path routing for Vercel so the frontend interacts seamlessly with Vercel's Serverless API routes (no CORS required)
   const isVercel = hostname.includes('vercel.app');
   
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
@@ -26,7 +26,7 @@ export function getApiUrl(path: string): string {
     // Return our stable Shared App URL as the fallback backend
     const stableBackend = 'https://ais-pre-rild7f6psslcmihyj7lza7-82519637447.us-east1.run.app';
     const finalUrl = `${stableBackend}${cleanPath}`;
-    console.log(`[getApiUrl] Routing %c${path}%c to backend: %c${finalUrl}%c (detected hostname: ${hostname})`, 'color:orange', '', 'color:green', '');
+    console.log(`[getApiUrl] Routing %c${path}%c to external remote backend: %c${finalUrl}%c (detected hostname: ${hostname})`, 'color:orange', '', 'color:green', '');
     return finalUrl;
   }
 
