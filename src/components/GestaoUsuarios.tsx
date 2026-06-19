@@ -22,7 +22,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { Usuario } from '../types';
-import { createUsuario, updateUsuario, deleteUsuario } from '../dbMock';
+import { createUsuario, updateUsuario, deleteUsuario } from '../apiServices';
 import { getApiUrl } from '../apiConfig';
 
 interface GestaoUsuariosProps {
@@ -233,7 +233,7 @@ export default function GestaoUsuarios({
           perfil,
           empresa,
           ativo
-        });
+        }, currentUser.email);
         setSuccessMsg(`Novo usuário "${nome}" cadastrado com sucesso!`);
       }
 

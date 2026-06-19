@@ -20,7 +20,7 @@ import {
   Line 
 } from 'recharts';
 import { Atendimento, Usuario, FilterType } from '../types';
-import { getUserNameById } from '../dbMock';
+import { getUserNameById } from '../apiServices';
 import { 
   Clock, 
   Ticket, 

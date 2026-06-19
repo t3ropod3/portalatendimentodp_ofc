@@ -16,7 +16,7 @@ export interface Usuario {
 export interface Anexo {
   name: string;
   size: string;
-  data: string; // Base64 data url or mock url
+  data: string; // Base64 data url
 }
 
 export interface Atendimento {

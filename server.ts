@@ -345,24 +345,37 @@ app.get("/api/test-db-connection", async (req, res) => {
 });
 
 app.post("/api/users", async (req, res) => {
-  const { id, nome, email, senha, perfil, empresa, ativo } = req.body;
+  const { id, nome, email, senha, perfil, empresa, ativo, creatorEmail } = req.body;
   const finalId = id || "usr-" + Date.now();
   try {
     const hashedSenha = bcrypt.hashSync(senha, 10);
+    let resultUser;
+
     if (useDatabase) {
       const inserted = await sql`
         INSERT INTO usuarios (id, nome, email, senha, perfil, empresa, ativo)
         VALUES (${finalId}, ${nome}, ${email}, ${hashedSenha}, ${perfil}, ${empresa}, ${ativo || 'Sim'})
         RETURNING id, nome, email, perfil, empresa, ativo
       `;
-      return res.json(inserted[0]);
+      resultUser = inserted[0];
     } else {
       const newUser = { id: finalId, nome, email, senha: hashedSenha, perfil, empresa, ativo: ativo || 'Sim' };
       localUsers.push(newUser);
-      
       const { senha: _, ...safeUser } = newUser;
-      return res.json(safeUser);
+      resultUser = safeUser;
     }
+
+    if (creatorEmail) {
+      const timestamp = new Date().toISOString();
+      const logLine = `[${timestamp}] Criador: ${creatorEmail} | Novo Usuário: ${email}\n`;
+      try {
+        fs.appendFileSync(path.join(process.cwd(), 'history'), logLine, 'utf8');
+      } catch (err) {
+        console.error('Failed to write history log:', err);
+      }
+    }
+
+    return res.json(resultUser);
   } catch (error: any) {
     return res.status(500).json({ error: error.message || "Failed to create user" });
   }
@@ -653,104 +666,7 @@ app.post("/api/notifications/clear", async (req, res) => {
 });
 
 // Admin Database Management Endpoints
-app.post("/api/admin/clear-database", async (req, res) => {
-  try {
-    const seededFilePath = path.join(process.cwd(), '.seeded');
-    // Save .seeded file to prevent startup auto-seeds
-    fs.writeFileSync(seededFilePath, 'true');
 
-    if (useDatabase) {
-      // Delete tickets, history, notifications
-      await sql`DELETE FROM notificacoes`;
-      await sql`DELETE FROM historico_atendimentos`;
-      await sql`DELETE FROM atendimentos`;
-
-      // Keep only administrator 'usr-1' (Keit Proativa) to avoid lockouts, or we can keep all users
-      // Depending on preference, keeping Keit Proativa is perfect so they can log in
-      await sql`DELETE FROM usuarios WHERE perfil != 'Administrador'`;
-      
-      return res.json({ success: true, message: "Banco de dados Neon limpo com sucesso! Apenas usuários administradores foram preservados para evitar bloqueios." });
-    } else {
-      localTickets = [];
-      localHistory = [];
-      localNotifications = [];
-      localUsers = localUsers.filter(u => u.perfil === 'Administrador');
-      return res.json({ success: true, message: "Banco de dados local em memória limpo com sucesso!" });
-    }
-  } catch (error: any) {
-    console.error("Admin clear-database error:", error);
-    return res.status(500).json({ error: error.message || "Failed to clear database" });
-  }
-});
-
-app.post("/api/admin/seed-database", async (req, res) => {
-  try {
-    const seededFilePath = path.join(process.cwd(), '.seeded');
-    if (fs.existsSync(seededFilePath)) {
-      try {
-        fs.unlinkSync(seededFilePath);
-      } catch (e) {}
-    }
-
-    if (useDatabase) {
-      // Clear current data
-      await sql`DELETE FROM notificacoes`;
-      await sql`DELETE FROM historico_atendimentos`;
-      await sql`DELETE FROM atendimentos`;
-      await sql`DELETE FROM usuarios`;
-
-      // Re-populate everything
-      for (const u of SEED_USERS) {
-        await sql`
-          INSERT INTO usuarios (id, nome, email, senha, perfil, empresa, ativo)
-          VALUES (${u.id}, ${u.nome}, ${u.email}, ${u.senha}, ${u.perfil}, ${u.empresa}, ${u.ativo})
-          ON CONFLICT (email) DO NOTHING
-        `;
-      }
-
-      for (const t of SEED_TICKETS) {
-        await sql`
-          INSERT INTO atendimentos (
-            id, protocolo, assunto, categoria, descricao, solicitacao, empresa, 
-            status, data_abertura, data_necessaria, data_retorno, data_encerramento, 
-            solicitante_id, responsavel_id, parecer, anexos
-          )
-          VALUES (
-            ${t.id}, ${t.protocolo}, ${t.assunto}, ${t.solicitacao}, ${t.descricao}, ${t.solicitacao}, ${t.empresa},
-            ${t.status}, ${t.data_abertura}, ${t.data_necessaria}, ${t.data_retorno}, ${t.data_encerramento}, 
-            ${t.solicitante_id}, ${t.responsavel_id}, ${t.parecer}, ${t.anexos}
-          )
-        `;
-      }
-
-      for (const h of SEED_HISTORY) {
-        await sql`
-          INSERT INTO historico_atendimentos (id, atendimento_id, usuario_id, data_hora, acao, observacao)
-          VALUES (${h.id}, ${h.atendimento_id}, ${h.usuario_id}, ${h.data_hora}, ${h.acao}, ${h.observacao})
-        `;
-      }
-
-      for (const n of SEED_NOTIFS) {
-        await sql`
-          INSERT INTO notificacoes (id, usuario_id, perfil_alvo, titulo, mensagem, data_hora, protocolo, lida, tipo)
-          VALUES (${n.id}, ${n.usuario_id || null}, ${n.perfil_alvo || null}, ${n.titulo}, ${n.mensagem}, ${n.data_hora}, ${n.protocolo || null}, ${n.lida}, ${n.tipo})
-        `;
-      }
-
-      fs.writeFileSync(seededFilePath, 'true');
-      return res.json({ success: true, message: "Banco de dados Neon re-populado com os dados de demonstração com sucesso!" });
-    } else {
-      localUsers = [...SEED_USERS];
-      localTickets = [...SEED_TICKETS];
-      localHistory = [...SEED_HISTORY];
-      localNotifications = [...SEED_NOTIFS];
-      return res.json({ success: true, message: "Banco de dados em memória re-populado com sucesso!" });
-    }
-  } catch (error: any) {
-    console.error("Admin seed-database error:", error);
-    return res.status(500).json({ error: error.message || "Failed to seed database" });
-  }
-});
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", usingNeon: useDatabase });

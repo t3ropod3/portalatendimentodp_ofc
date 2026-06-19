@@ -19,7 +19,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { Atendimento, Usuario, FilterType } from '../types';
-import { getUserNameById } from '../dbMock';
+import { getUserNameById } from '../apiServices';
 
 interface AtendimentosProps {
   currentUser: Usuario;

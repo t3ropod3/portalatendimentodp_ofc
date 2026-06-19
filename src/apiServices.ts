@@ -11,25 +11,11 @@ const TICKETS_KEY = 'dp_chamados_tickets';
 const HISTORY_KEY = 'dp_chamados_history';
 const NOTIFICATIONS_KEY = 'dp_chamados_notifications';
 
-// Default mock users
-const DEFAULT_USERS: Usuario[] = [
-  {
-    id: 'usr-1',
-    nome: 'Keit Proativa',
-    email: 'keit.proativacc@gmail.com',
-    senha: '123',
-    perfil: 'Administrador',
-    empresa: 'Proativa',
-    ativo: 'Sim'
-  }
-];
+// Default local cache initialization objects
+const DEFAULT_USERS: Usuario[] = [];
 
-// Seed tickets for dashboards and tables
 const DEFAULT_TICKETS: Atendimento[] = [];
-
-// History seed
 const DEFAULT_HISTORY: HistoricoAtendimento[] = [];
-
 const DEFAULT_NOTIFICATIONS: Notificacao[] = [];
 
 export function initDB() {
@@ -106,7 +92,7 @@ export async function deleteUsuario(id: string) {
   return data;
 }
 
-export async function createUsuario(user: Omit<Usuario, 'id'>): Promise<Usuario> {
+export async function createUsuario(user: Omit<Usuario, 'id'>, creatorEmail?: string): Promise<Usuario> {
   const users = getUsers();
   const newUser: Usuario = {
     ...user,
@@ -117,7 +103,7 @@ export async function createUsuario(user: Omit<Usuario, 'id'>): Promise<Usuario>
   const res = await fetch(getApiUrl('/api/users'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newUser)
+    body: JSON.stringify({ ...newUser, creatorEmail })
   });
   
   if (!res.ok) {

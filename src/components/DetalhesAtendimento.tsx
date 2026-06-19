@@ -22,7 +22,7 @@ import {
   Clock3
 } from 'lucide-react';
 import { Atendimento, Usuario, HistoricoAtendimento, Anexo } from '../types';
-import { getUsers, addHistoryRecord, getUserNameById } from '../dbMock';
+import { getUsers, addHistoryRecord, getUserNameById } from '../apiServices';
 
 interface DetalhesAtendimentoProps {
   currentUser: Usuario;
@@ -282,18 +282,9 @@ export default function DetalhesAtendimento({
                           href={anexo.data}
                           download={anexo.name}
                           onClick={(e) => {
-                            if (anexo.data === 'data:application/pdf;base64,mockdata' || !anexo.data.startsWith('data:')) {
+                            if (!anexo.data.startsWith('data:')) {
                               e.preventDefault();
-                              const content = `Nome do Arquivo: ${anexo.name}\nTamanho: ${anexo.size}\n\nEste é um arquivo auxiliar/simulado para fins de demonstração.\nOs anexos reais inseridos pelos colaboradores em produção são persistidos no banco de dados e baixados de forma binária com sucesso.`;
-                              const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-                              const url = URL.createObjectURL(blob);
-                              const tempLink = document.createElement('a');
-                              tempLink.href = url;
-                              tempLink.setAttribute('download', anexo.name.endsWith('.pdf') || anexo.name.endsWith('.png') || anexo.name.endsWith('.jpg') || anexo.name.endsWith('.jpeg') ? anexo.name + '.txt' : anexo.name);
-                              document.body.appendChild(tempLink);
-                              tempLink.click();
-                              document.body.removeChild(tempLink);
-                              URL.revokeObjectURL(url);
+                              alert('Esse anexo não possui dados estáticos armazenados adequadamente para download.');
                             }
                           }}
                           className="p-1.5 bg-white hover:bg-indigo-50 border border-slate-200 text-slate-500 hover:text-indigo-600 rounded-md transition-colors"

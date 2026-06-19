@@ -19,7 +19,7 @@ import {
   markAllAsRead,
   clearNotifications,
   updateTicket
-} from './dbMock';
+} from './apiServices';
 import { Usuario, Atendimento, HistoricoAtendimento, FilterType, Notificacao } from './types';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';

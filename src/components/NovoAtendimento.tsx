@@ -18,7 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Usuario, Anexo } from '../types';
-import { createTicket } from '../dbMock';
+import { createTicket } from '../apiServices';
 
 interface NovoAtendimentoProps {
   currentUser: Usuario;

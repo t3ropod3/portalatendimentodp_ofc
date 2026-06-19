@@ -10,7 +10,7 @@ import {
   X 
 } from 'lucide-react';
 import { Usuario, Notificacao } from '../types';
-import { markAsRead, markAllAsRead, clearNotifications } from '../dbMock';
+import { markAsRead, markAllAsRead, clearNotifications } from '../apiServices';
 
 interface NotificationBellProps {
   currentUser: Usuario;
