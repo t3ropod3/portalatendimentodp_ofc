@@ -48,37 +48,71 @@ export default function App() {
 
   const loadDatabaseFromServer = async () => {
     setIsSyncing(true);
+    let syncedAny = false;
+
+    // Fetch and save users independently
     try {
-      const [uRes, tRes, hRes, nRes] = await Promise.all([
-        fetch(getApiUrl('/api/users')).then(r => {
-          if (!r.ok) throw new Error();
-          return r.json();
-        }),
-        fetch(getApiUrl('/api/tickets')).then(r => {
-          if (!r.ok) throw new Error();
-          return r.json();
-        }),
-        fetch(getApiUrl('/api/history')).then(r => {
-          if (!r.ok) throw new Error();
-          return r.json();
-        }),
-        fetch(getApiUrl('/api/notifications')).then(r => {
-          if (!r.ok) throw new Error();
-          return r.json();
-        })
-      ]);
-
-      localStorage.setItem('dp_chamados_users', JSON.stringify(uRes));
-      localStorage.setItem('dp_chamados_tickets', JSON.stringify(tRes));
-      localStorage.setItem('dp_chamados_history', JSON.stringify(hRes));
-      localStorage.setItem('dp_chamados_notifications', JSON.stringify(nRes));
-
-      refreshDatabase();
+      const uRes = await fetch(getApiUrl('/api/users'));
+      if (uRes.ok) {
+        const uData = await uRes.json();
+        localStorage.setItem('dp_chamados_users', JSON.stringify(uData));
+        syncedAny = true;
+      } else {
+        console.warn("Server responded with error when fetching users.");
+      }
     } catch (err) {
-      console.warn("Neon backend offline or tables unmigrated. Operating with client cache fallback.", err);
-    } finally {
-      setIsSyncing(false);
+      console.warn("Failed to fetch users from server:", err);
     }
+
+    // Fetch and save tickets independently
+    try {
+      const tRes = await fetch(getApiUrl('/api/tickets'));
+      if (tRes.ok) {
+        const tData = await tRes.json();
+        localStorage.setItem('dp_chamados_tickets', JSON.stringify(tData));
+        syncedAny = true;
+      } else {
+        console.warn("Server responded with error when fetching tickets.");
+      }
+    } catch (err) {
+      console.warn("Failed to fetch tickets from server:", err);
+    }
+
+    // Fetch and save history independently
+    try {
+      const hRes = await fetch(getApiUrl('/api/history'));
+      if (hRes.ok) {
+        const hData = await hRes.json();
+        localStorage.setItem('dp_chamados_history', JSON.stringify(hData));
+        syncedAny = true;
+      } else {
+        console.warn("Server responded with error when fetching history.");
+      }
+    } catch (err) {
+      console.warn("Failed to fetch history from server:", err);
+    }
+
+    // Fetch and save notifications independently
+    try {
+      const nRes = await fetch(getApiUrl('/api/notifications'));
+      if (nRes.ok) {
+        const nData = await nRes.json();
+        localStorage.setItem('dp_chamados_notifications', JSON.stringify(nData));
+        syncedAny = true;
+      } else {
+        console.warn("Server responded with error when fetching notifications.");
+      }
+    } catch (err) {
+      console.warn("Failed to fetch notifications from server:", err);
+    }
+
+    if (syncedAny) {
+      refreshDatabase();
+    } else {
+      console.warn("Neon backend offline or tables unmigrated. Operating with client cache fallback.");
+    }
+    
+    setIsSyncing(false);
   };
 
   // Database initialization on mount

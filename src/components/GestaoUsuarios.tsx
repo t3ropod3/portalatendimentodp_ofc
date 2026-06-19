@@ -260,7 +260,7 @@ export default function GestaoUsuarios({
     <div className="space-y-6 animate-fade-in">
       
       {/* Informative Banner */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
             <Users className="h-5 w-5 text-indigo-600 animate-pulse-slow" />
@@ -270,7 +270,47 @@ export default function GestaoUsuarios({
             Cadastre novos colaboradores, edite privilégios corporativos bem como alterne o status ativo/inativo das contas.
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          {onForceSync && (
+            <button
+              onClick={handleClientSync}
+              disabled={isSyncing || isDbWorking}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 disabled:bg-slate-50 disabled:text-slate-400 font-bold rounded-lg text-xs border border-indigo-100 shadow-xs cursor-pointer transition-colors"
+              title="Obter usuários e chamados mais recentes do banco de dados (Neon)"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing || isDbWorking ? 'animate-spin' : ''}`} />
+              <span>Sincronizar Dados</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleSeedDatabase}
+            disabled={isDbWorking}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 disabled:bg-slate-50 disabled:text-slate-400 font-bold rounded-lg text-xs border border-slate-200 cursor-pointer transition-colors"
+            title="Popular banco com dados fictícios de demonstração"
+          >
+            <Database className="h-3.5 w-3.5 text-slate-500" />
+            <span>Inserir Demonstração</span>
+          </button>
+        </div>
       </div>
+
+      {(dbSuccessMsg || dbErrorMsg) && (
+        <div className="space-y-2">
+          {dbSuccessMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-lg flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>{dbSuccessMsg}</span>
+            </div>
+          )}
+          {dbErrorMsg && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-850 text-xs font-semibold rounded-lg flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />
+              <span>{dbErrorMsg}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         

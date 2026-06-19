@@ -407,7 +407,7 @@ export default function DetalhesAtendimento({
                           type="button"
                           id="admin-btn-close-ticket"
                           onClick={handleEncerrarAtendimento}
-                          className="w-full sm:w-auto px-5 py-2.5 bg-red-650 hover:bg-red-750 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                          className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
                         >
                           <CheckCircle className="h-4 w-4" />
                           <span>Encerrar Atendimento</span>
