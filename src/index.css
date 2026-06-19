@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* Royal Blue overrides for indigo */
+  --color-indigo-50: #f0f3ff;
+  --color-indigo-100: #e0e6ff;
+  --color-indigo-200: #c2cdff;
+  --color-indigo-300: #99abff;
+  --color-indigo-400: #6680ff;
+  --color-indigo-500: #4169e1; /* Royal Blue */
+  --color-indigo-600: #2143df; /* Rich Vivid Royal Blue */
+  --color-indigo-750: #1531b8;
+  --color-indigo-700: #152ea8; /* Deep Royal Blue */
+  --color-indigo-800: #0e1e78;
+  --color-indigo-900: #0a134a;
+  --color-indigo-950: #040824;
+
+  /* Neon Orange overrides for amber */
+  --color-amber-50: #fff5f0;
+  --color-amber-100: #ffe6db;
+  --color-amber-200: #ffccb8;
+  --color-amber-300: #ffa685;
+  --color-amber-400: #ff7747;
+  --color-amber-500: #ff5f1f; /* Neon Orange */
+  --color-amber-600: #e04408; /* Vivid Deep Neon Orange */
+  --color-amber-700: #b83300;
+  --color-amber-800: #8c2400;
+  --color-amber-900: #5e1600;
+  --color-amber-955: #3b0e00;
+  --color-amber-950: #290800;
+
+  /* Neon Orange overrides for orange */
+  --color-orange-50: #fff5f0;
+  --color-orange-100: #ffe6db;
+  --color-orange-200: #ffccb8;
+  --color-orange-300: #ffa685;
+  --color-orange-400: #ff7747;
+  --color-orange-500: #ff5f1f; /* Neon Orange */
+  --color-orange-600: #e04408;
+  --color-orange-700: #b83300;
+  --color-orange-850: #7a2000;
+}
