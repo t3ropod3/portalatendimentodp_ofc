@@ -3,7 +3,6 @@ import path from "path";
 import dotenv from "dotenv";
 import fs from "fs";
 import { neon } from "@neondatabase/serverless";
-import { createServer as createViteServer } from "vite";
 import bcrypt from "bcryptjs";
 
 import cors from "cors";
@@ -673,7 +672,9 @@ async function startServer() {
   await initializeDbSchema();
 
   // Vite integration middleware
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+    const viteModuleName = "vite";
+    const { createServer: createViteServer } = await import(viteModuleName);
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
