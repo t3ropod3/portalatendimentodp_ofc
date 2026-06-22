@@ -16,7 +16,10 @@ import {
   AlertCircle,
   HelpCircle,
   CheckCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { Atendimento, Usuario, FilterType } from '../types';
 import { getUserNameById } from '../apiServices';
@@ -39,7 +42,31 @@ export default function Atendimentos({
   setActiveFilter
 }: AtendimentosProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'abertura_desc' | 'abertura_asc' | 'necessaria_desc'>('abertura_desc');
+  
+  // States for column filters and sorting
+  const [sortField, setSortField] = useState<string>('data_abertura');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [columnFilters, setColumnFilters] = useState({
+    protocolo: '',
+    assunto: '',
+    empresa: '',
+    solicitante: '',
+    responsavel: '',
+    status: ''
+  });
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleColumnFilterChange = (field: keyof typeof columnFilters, value: string) => {
+    setColumnFilters(prev => ({ ...prev, [field]: value }));
+  };
 
   // Compute tickets accessible for count badges dynamically
   const ticketsForCounts = useMemo(() => {
@@ -95,22 +122,73 @@ export default function Atendimentos({
       );
     }
 
-    // 4. Sort Ordering
+    // 4. Column filtering
+    if (columnFilters.protocolo) {
+      list = list.filter(t => t.protocolo.toLowerCase().includes(columnFilters.protocolo.toLowerCase()));
+    }
+    if (columnFilters.assunto) {
+      list = list.filter(t => 
+        t.assunto.toLowerCase().includes(columnFilters.assunto.toLowerCase()) ||
+        t.solicitacao.toLowerCase().includes(columnFilters.assunto.toLowerCase())
+      );
+    }
+    if (columnFilters.empresa) {
+      list = list.filter(t => t.empresa.toLowerCase().includes(columnFilters.empresa.toLowerCase()));
+    }
+    if (columnFilters.solicitante) {
+      list = list.filter(t => {
+        const name = getUserNameById(t.solicitante_id).toLowerCase();
+        return name.includes(columnFilters.solicitante.toLowerCase());
+      });
+    }
+    if (columnFilters.responsavel) {
+      list = list.filter(t => {
+        const name = t.responsavel_id ? getUserNameById(t.responsavel_id).toLowerCase() : '--';
+        return name.includes(columnFilters.responsavel.toLowerCase());
+      });
+    }
+    if (columnFilters.status) {
+      list = list.filter(t => t.status.toLowerCase().includes(columnFilters.status.toLowerCase()));
+    }
+
+    // 5. Sort Ordering
     list.sort((a, b) => {
-      if (sortBy === 'abertura_desc') {
-        return new Date(b.data_abertura).getTime() - new Date(a.data_abertura).getTime();
+      let comparison = 0;
+      switch (sortField) {
+        case 'protocolo':
+          comparison = a.protocolo.localeCompare(b.protocolo);
+          break;
+        case 'assunto':
+          comparison = a.assunto.localeCompare(b.assunto);
+          break;
+        case 'empresa':
+          comparison = a.empresa.localeCompare(b.empresa);
+          break;
+        case 'solicitante':
+          comparison = getUserNameById(a.solicitante_id).localeCompare(getUserNameById(b.solicitante_id));
+          break;
+        case 'responsavel':
+          const respA = a.responsavel_id ? getUserNameById(a.responsavel_id) : '';
+          const respB = b.responsavel_id ? getUserNameById(b.responsavel_id) : '';
+          comparison = respA.localeCompare(respB);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case 'data_abertura':
+          comparison = new Date(a.data_abertura).getTime() - new Date(b.data_abertura).getTime();
+          break;
+        case 'data_necessaria':
+          comparison = new Date(a.data_necessaria).getTime() - new Date(b.data_necessaria).getTime();
+          break;
+        default:
+          comparison = 0;
       }
-      if (sortBy === 'abertura_asc') {
-        return new Date(a.data_abertura).getTime() - new Date(b.data_abertura).getTime();
-      }
-      if (sortBy === 'necessaria_desc') {
-        return new Date(a.data_necessaria).getTime() - new Date(b.data_necessaria).getTime();
-      }
-      return 0;
+      return sortDirection === 'asc' ? comparison : -comparison;
     });
 
     return list;
-  }, [tickets, currentUser, activeFilter, searchTerm, sortBy]);
+  }, [tickets, currentUser, activeFilter, searchTerm, sortField, sortDirection, columnFilters]);
 
   // Status Badge Creator
   const renderStatusBadge = (status: Atendimento['status']) => {
@@ -153,6 +231,13 @@ export default function Atendimentos({
     );
   };
 
+  const renderSortIcon = (field: string) => {
+    if (sortField !== field) return <ArrowUpDown className="inline-block ml-1 h-3 w-3 text-indigo-300/50" />;
+    return sortDirection === 'asc' 
+      ? <ChevronUp className="inline-block ml-1 h-3 w-3 text-white" /> 
+      : <ChevronDown className="inline-block ml-1 h-3 w-3 text-white" />;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       
@@ -163,7 +248,7 @@ export default function Atendimentos({
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           
           {/* Search bar */}
-          <div className="relative w-full md:max-w-md">
+          <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Search className="h-4 w-4" />
             </div>
@@ -175,20 +260,6 @@ export default function Atendimentos({
               placeholder="Pesquisar por protocolo, assunto, termo..."
               className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl text-sm text-slate-800 focus:outline-hidden transition-all shadow-inner/5"
             />
-          </div>
-
-          {/* Sort selection */}
-          <div className="flex items-center space-x-2.5 w-full md:w-auto justify-end">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Ordenação:</span>
-            <select
-              value={sortBy}
-              onChange={(e: any) => setSortBy(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 py-2 px-3.5 focus:outline-hidden cursor-pointer hover:bg-slate-100 transition-colors"
-            >
-              <option value="abertura_desc">Abertura recente</option>
-              <option value="abertura_asc">Abertura antiga</option>
-              <option value="necessaria_desc">Prazo urgente</option>
-            </select>
           </div>
 
         </div>
@@ -300,16 +371,59 @@ export default function Atendimentos({
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-indigo-900 text-indigo-100 text-[10px] font-bold uppercase tracking-wider border-b border-indigo-950">
-                <th className="py-4 px-6">Protocolo</th>
-                <th className="py-4 px-6">Assunto / Categoria</th>
-                <th className="py-4 px-6 text-center">Empresa</th>
-                <th className="py-4 px-6">Solicitante</th>
-                <th className="py-4 px-6">Abertura</th>
-                <th className="py-4 px-6">Necessária</th>
-                <th className="py-4 px-6">Responsável</th>
-                <th className="py-4 px-6 text-center">Status</th>
-                <th className="py-4 px-6 text-center">Ações</th>
+              <tr className="bg-indigo-900 text-indigo-100 text-[10px] font-bold uppercase tracking-wider border-b border-indigo-800">
+                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('protocolo')}>
+                  Protocolo {renderSortIcon('protocolo')}
+                </th>
+                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('assunto')}>
+                  Assunto / Categoria {renderSortIcon('assunto')}
+                </th>
+                <th className="py-3 px-6 text-center cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('empresa')}>
+                  Empresa {renderSortIcon('empresa')}
+                </th>
+                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('solicitante')}>
+                  Solicitante {renderSortIcon('solicitante')}
+                </th>
+                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('data_abertura')}>
+                  Abertura {renderSortIcon('data_abertura')}
+                </th>
+                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('data_necessaria')}>
+                  Necessária {renderSortIcon('data_necessaria')}
+                </th>
+                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('responsavel')}>
+                  Responsável {renderSortIcon('responsavel')}
+                </th>
+                <th className="py-3 px-6 text-center cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('status')}>
+                  Status {renderSortIcon('status')}
+                </th>
+                <th className="py-3 px-6 text-center border-l border-indigo-800">Ações</th>
+              </tr>
+              <tr className="bg-indigo-900/90 border-b border-indigo-950">
+                <th className="p-2 px-4">
+                  <input type="text" value={columnFilters.protocolo} onChange={e => handleColumnFilterChange('protocolo', e.target.value)} placeholder="Filtrar..." className="w-full bg-indigo-950/50 border border-indigo-700 rounded px-2 py-1 text-[10px] text-white placeholder:text-indigo-300 focus:outline-hidden focus:border-indigo-400" />
+                </th>
+                <th className="p-2 px-4">
+                  <input type="text" value={columnFilters.assunto} onChange={e => handleColumnFilterChange('assunto', e.target.value)} placeholder="Filtrar assunto..." className="w-full bg-indigo-950/50 border border-indigo-700 rounded px-2 py-1 text-[10px] text-white placeholder:text-indigo-300 focus:outline-hidden focus:border-indigo-400" />
+                </th>
+                <th className="p-2 px-4">
+                  <input type="text" value={columnFilters.empresa} onChange={e => handleColumnFilterChange('empresa', e.target.value)} placeholder="Empresa..." className="w-full bg-indigo-950/50 border border-indigo-700 rounded px-2 py-1 text-[10px] text-white placeholder:text-indigo-300 focus:outline-hidden focus:border-indigo-400 text-center" />
+                </th>
+                <th className="p-2 px-4">
+                  <input type="text" value={columnFilters.solicitante} onChange={e => handleColumnFilterChange('solicitante', e.target.value)} placeholder="Solicitante..." className="w-full bg-indigo-950/50 border border-indigo-700 rounded px-2 py-1 text-[10px] text-white placeholder:text-indigo-300 focus:outline-hidden focus:border-indigo-400" />
+                </th>
+                <th className="p-2 px-4 text-center">
+                  <span className="text-[10px] text-indigo-300 opacity-50">-</span>
+                </th>
+                <th className="p-2 px-4 text-center">
+                  <span className="text-[10px] text-indigo-300 opacity-50">-</span>
+                </th>
+                <th className="p-2 px-4">
+                  <input type="text" value={columnFilters.responsavel} onChange={e => handleColumnFilterChange('responsavel', e.target.value)} placeholder="Responsável..." className="w-full bg-indigo-950/50 border border-indigo-700 rounded px-2 py-1 text-[10px] text-white placeholder:text-indigo-300 focus:outline-hidden focus:border-indigo-400" />
+                </th>
+                <th className="p-2 px-4">
+                  <input type="text" value={columnFilters.status} onChange={e => handleColumnFilterChange('status', e.target.value)} placeholder="Status..." className="w-full bg-indigo-950/50 border border-indigo-700 rounded px-2 py-1 text-[10px] text-white placeholder:text-indigo-300 focus:outline-hidden focus:border-indigo-400 text-center" />
+                </th>
+                <th className="p-2 px-4 border-l border-indigo-800"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
