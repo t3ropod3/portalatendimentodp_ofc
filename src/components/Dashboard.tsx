@@ -33,6 +33,56 @@ import {
   BarChart3
 } from 'lucide-react';
 
+function calculateBusinessDiffMs(startTime: number, endTime: number): number {
+  if (startTime >= endTime) return 0;
+  
+  // Feriados fixos nacionais (MM-DD)
+  const fixedHolidays = [
+    '01-01', // Ano Novo
+    '04-21', // Tiradentes
+    '05-01', // Dia do Trabalho
+    '09-07', // Independência do Brasil
+    '10-12', // Nossa Senhora Aparecida
+    '11-02', // Finados
+    '11-15', // Proclamação da República
+    '12-25', // Natal
+  ];
+  
+  // Feriados móveis específicos de 2026 e outros anos próximos se houver
+  const dynamicHolidays = [
+    '2026-02-16', // Carnaval
+    '2026-02-17', // Carnaval
+    '2026-04-03', // Sexta-feira Santa
+    '2026-06-04', // Corpus Christi
+  ];
+
+  const isHoliday = (d: Date) => {
+    const mmdd = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const yyyymmdd = `${d.getFullYear()}-${mmdd}`;
+    return fixedHolidays.includes(mmdd) || dynamicHolidays.includes(yyyymmdd);
+  };
+
+  let totalMs = 0;
+  let current = new Date(startTime);
+  
+  while (current.getTime() < endTime) {
+    const nextBoundary = new Date(current);
+    nextBoundary.setHours(24, 0, 0, 0); // Vai para 00:00 do dia seguinte
+    
+    const intervalEnd = nextBoundary.getTime() < endTime ? nextBoundary.getTime() : endTime;
+    
+    const day = current.getDay();
+    // 0 = Domingo, 6 = Sábado
+    if (day !== 0 && day !== 6 && !isHoliday(current)) {
+      totalMs += (intervalEnd - current.getTime());
+    }
+    
+    current = new Date(intervalEnd); // Avança
+  }
+  
+  return totalMs;
+}
+
 interface DashboardProps {
   tickets: Atendimento[];
   users: Usuario[];
@@ -59,29 +109,26 @@ export default function Dashboard({ tickets, users, onSelectMetricCard }: Dashbo
     const emAtendimento = tickets.filter(t => t.status === 'Em Atendimento').length;
     const encerrados = tickets.filter(t => t.status === 'Encerrado').length;
     
-    // Average response time (only for closed tickets)
+    // Average response time (only for closed tickets) excludes weekends and holidays
     const closedTickets = tickets.filter(t => t.status === 'Encerrado' && t.data_encerramento);
     let avgTimeText = '0h';
     
     if (closedTickets.length > 0) {
-      let totalDiffMs = 0;
+      let totalBusinessMs = 0;
       closedTickets.forEach(t => {
         const openTime = new Date(t.data_abertura).getTime();
         const closeTime = new Date(t.data_encerramento!).getTime();
-        const diff = closeTime - openTime;
-        if (diff > 0) {
-          totalDiffMs += diff;
-        }
+        totalBusinessMs += calculateBusinessDiffMs(openTime, closeTime);
       });
       
-      const avgMs = totalDiffMs / closedTickets.length;
+      const avgMs = totalBusinessMs / closedTickets.length;
       const avgHours = avgMs / (1000 * 60 * 60);
       
       if (avgHours < 24) {
         avgTimeText = `${avgHours.toFixed(1)}h`;
       } else {
         const avgDays = avgHours / 24;
-        avgTimeText = `${avgDays.toFixed(1)} ${avgDays === 1 ? 'dia' : 'dias'}`;
+        avgTimeText = `${avgDays.toFixed(1)} ${avgDays === 1 ? 'dia útil' : 'dias úteis'}`;
       }
     }
 
