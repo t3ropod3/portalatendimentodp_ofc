@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, FormEvent } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { 
   getUsers, 
   getTickets, 
@@ -697,6 +698,7 @@ export default function App() {
 
         </Layout>
       )}
+      <Analytics />
     </>
   );
 }
