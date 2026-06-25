@@ -42,7 +42,7 @@ export default function DetalhesAtendimento({
   history,
   onDeleteTicket
 }: DetalhesAtendimentoProps) {
-  const [parecer, setParecer] = useState(ticket.parecer || '');
+  const [novoParecer, setNovoParecer] = useState('');
   const [responsavelId, setResponsavelId] = useState(ticket.responsavel_id || ((currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente') ? currentUser.id : ''));
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -96,10 +96,21 @@ export default function DetalhesAtendimento({
       // Auto upgrade status to "Em Atendimento" if it was "Aberto" and we are replying/assigning
       const nextStatus = originalStatus === 'Aberto' ? 'Em Atendimento' : originalStatus;
 
+      let updatedParecer = ticket.parecer || '';
+      const textoParecer = novoParecer.trim();
+      let hasNewParecer = false;
+      
+      if (textoParecer) {
+        const timestamp = new Date().toLocaleString('pt-BR');
+        const header = `[${timestamp}] ${currentUser.nome}:`;
+        updatedParecer = updatedParecer ? `${updatedParecer}\n\n${header}\n${textoParecer}` : `${header}\n${textoParecer}`;
+        hasNewParecer = true;
+      }
+
       const updatedTicket: Atendimento = {
         ...ticket,
         responsavel_id: responsavelId || undefined,
-        parecer: parecer,
+        parecer: updatedParecer,
         data_retorno: new Date().toISOString(),
         status: nextStatus
       };
@@ -108,7 +119,9 @@ export default function DetalhesAtendimento({
 
       // Log histories
       let logAction = 'Atualização de Atendimento';
-      let logObs = `Administrador ${currentUser.nome} atualizou o parecer.`;
+      let logObs = hasNewParecer 
+        ? `Novo parecer registrado por ${currentUser.nome}.` 
+        : `Administrador ${currentUser.nome} atualizou os dados do chamado.`;
 
       if (isFirstAssignment) {
         logAction = 'Atribuição de Responsável';
@@ -126,6 +139,7 @@ export default function DetalhesAtendimento({
         observacao: logObs
       });
 
+      setNovoParecer('');
       setSuccessMsg('Atendimento salvo com sucesso!');
     } catch (err: any) {
       setErrorMsg('Falha ao salvar atendimento: ' + err.message);
@@ -147,18 +161,27 @@ export default function DetalhesAtendimento({
       return;
     }
 
-    if (isHandler && !parecer.trim()) {
+    if (isHandler && !novoParecer.trim() && !ticket.parecer) {
       setErrorMsg('A descrição do parecer/resposta final do DP é obrigatória antes de encerrar.');
       return;
     }
 
     try {
       const now = new Date().toISOString();
+      let updatedParecer = ticket.parecer || '';
+      const textoParecer = novoParecer.trim();
+      
+      if (textoParecer) {
+        const timestamp = new Date().toLocaleString('pt-BR');
+        const header = `[${timestamp}] ${currentUser.nome}:`;
+        updatedParecer = updatedParecer ? `${updatedParecer}\n\n${header}\n${textoParecer}` : `${header}\n${textoParecer}`;
+      }
+
       const updatedTicket: Atendimento = {
         ...ticket,
         status: 'Encerrado',
         responsavel_id: responsavelId || (isHandler ? currentUser.id : ticket.responsavel_id),
-        parecer: isHandler ? parecer : (ticket.parecer || 'Chamado finalizado pelo próprio solicitante.'),
+        parecer: isHandler ? updatedParecer : (updatedParecer || 'Chamado finalizado pelo próprio solicitante.'),
         data_retorno: now,
         data_encerramento: now
       };
@@ -452,12 +475,24 @@ export default function DetalhesAtendimento({
                         </div>
                       </div>
 
+                      {/* Histórico do Parecer Atual */}
+                      {ticket.parecer && (
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Histórico de Pareceres</label>
+                          <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700 max-h-48 overflow-y-auto">
+                            {ticket.parecer}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Parecer / Resposta input block */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Parecer do DP / Resposta da Solicitação *</label>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                          {ticket.parecer ? 'Adicionar Novo Parecer do DP *' : 'Parecer do DP / Resposta da Solicitação *'}
+                        </label>
                         <textarea
-                          value={parecer}
-                          onChange={(e) => setParecer(e.target.value)}
+                          value={novoParecer}
+                          onChange={(e) => setNovoParecer(e.target.value)}
                           rows={4}
                           placeholder="Digite aqui o parecer técnico do DP ou a resposta esclarecedora sobre esta solicitação..."
                           className="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl text-xs text-slate-800 focus:outline-hidden transition-all"
