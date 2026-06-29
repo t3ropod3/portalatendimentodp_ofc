@@ -367,8 +367,26 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
           <textarea
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
+            onPaste={(e) => {
+              const items = e.clipboardData?.items;
+              if (items) {
+                const files: File[] = [];
+                for (let i = 0; i < items.length; i++) {
+                  if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    if (file) files.push(file);
+                  }
+                }
+                
+                if (files.length > 0) {
+                  const dt = new DataTransfer();
+                  files.forEach(f => dt.items.add(f));
+                  processFiles(dt.files);
+                }
+              }
+            }}
             rows={5}
-            placeholder="Forneça o máximo de detalhes possível, como datas de ocorrência, valores ou justificativas, para que a resposta do DP seja ágil e precisa."
+            placeholder="Forneça o máximo de detalhes possível, como datas de ocorrência, valores ou justificativas, para que a resposta do DP seja ágil e precisa. Você também pode colar prints diretamente aqui."
             className="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg text-sm text-slate-800 transition-colors font-medium focus:outline-hidden"
             required
           />

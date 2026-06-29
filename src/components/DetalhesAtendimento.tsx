@@ -43,11 +43,78 @@ export default function DetalhesAtendimento({
   onDeleteTicket
 }: DetalhesAtendimentoProps) {
   const [novoParecer, setNovoParecer] = useState('');
+  const [novosAnexos, setNovosAnexos] = useState<Anexo[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
   const [responsavelId, setResponsavelId] = useState(ticket.responsavel_id || ((currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente') ? currentUser.id : ''));
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const processFiles = (fileList: FileList) => {
+    const loadedAnexos: Anexo[] = [];
+    const maxFileSize = 4 * 1024 * 1024;
+    let sizeError = false;
+
+    const filePromises = Array.from(fileList).map((file) => {
+      return new Promise<void>((resolve) => {
+        if (file.size > maxFileSize) {
+          sizeError = true;
+          resolve();
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            loadedAnexos.push({
+              name: file.name,
+              size: formatBytes(file.size),
+              data: event.target.result as string
+            });
+          }
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(filePromises).then(() => {
+      if (sizeError) {
+        setErrorMsg('Alguns arquivos excederam o limite máximo de 4MB por segurança e foram desconsiderados.');
+      } else {
+        setErrorMsg('');
+      }
+      setNovosAnexos((prev) => [...prev, ...loadedAnexos]);
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => setIsDragOver(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files) processFiles(e.dataTransfer.files);
+  };
+
+  const removeNovoAnexo = (index: number) => {
+    setNovosAnexos((prev) => prev.filter((_, idx) => idx !== index));
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -84,17 +151,26 @@ export default function DetalhesAtendimento({
     setErrorMsg('');
 
     const isHandler = currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente';
-    if (!isHandler) {
-      setErrorMsg('Somente atendentes e administradores podem salvar pareceres de atendimento.');
+    const isOwner = ticket.solicitante_id === currentUser.id;
+
+    if (!isHandler && !isOwner) {
+      setErrorMsg('Você não possui permissão para interagir neste chamado.');
+      return;
+    }
+
+    if (!novoParecer.trim() && novosAnexos.length === 0 && !isHandler) {
+      setErrorMsg('Adicione um comentário ou anexo para enviar.');
       return;
     }
 
     try {
-      const isFirstAssignment = !ticket.responsavel_id && responsavelId;
       const originalStatus = ticket.status;
+      let nextStatus = originalStatus;
       
       // Auto upgrade status to "Em Atendimento" if it was "Aberto" and we are replying/assigning
-      const nextStatus = originalStatus === 'Aberto' ? 'Em Atendimento' : originalStatus;
+      if (isHandler && originalStatus === 'Aberto') {
+        nextStatus = 'Em Atendimento';
+      }
 
       let updatedParecer = ticket.parecer || '';
       const textoParecer = novoParecer.trim();
@@ -109,10 +185,11 @@ export default function DetalhesAtendimento({
 
       const updatedTicket: Atendimento = {
         ...ticket,
-        responsavel_id: responsavelId || undefined,
+        responsavel_id: isHandler ? (responsavelId || undefined) : ticket.responsavel_id,
         parecer: updatedParecer,
-        data_retorno: new Date().toISOString(),
-        status: nextStatus
+        data_retorno: isHandler ? new Date().toISOString() : ticket.data_retorno,
+        status: nextStatus,
+        anexos: [...(ticket.anexos || []), ...novosAnexos]
       };
 
       await onUpdateTicket(updatedTicket);
@@ -120,13 +197,19 @@ export default function DetalhesAtendimento({
       // Log histories
       let logAction = 'Atualização de Atendimento';
       let logObs = hasNewParecer 
-        ? `Novo parecer registrado por ${currentUser.nome}.` 
-        : `Administrador ${currentUser.nome} atualizou os dados do chamado.`;
+        ? `Novo comentário registrado por ${currentUser.nome}.` 
+        : (isHandler ? `Administrador ${currentUser.nome} atualizou os dados do chamado.` : `Usuário ${currentUser.nome} atualizou o chamado.`);
+        
+      if (novosAnexos.length > 0) {
+        logObs += ` (${novosAnexos.length} novo(s) anexo(s) enviado(s)).`;
+      }
+
+      const isFirstAssignment = isHandler && !ticket.responsavel_id && responsavelId;
 
       if (isFirstAssignment) {
         logAction = 'Atribuição de Responsável';
         logObs = `Chamado atribuído a ${getUserNameById(responsavelId)} por ${currentUser.nome}.`;
-      } else if (originalStatus === 'Aberto' && nextStatus === 'Em Atendimento') {
+      } else if (isHandler && originalStatus === 'Aberto' && nextStatus === 'Em Atendimento') {
         logAction = 'Início do Atendimento';
         logObs = `Chamado assumido por ${getUserNameById(responsavelId)}. Status alterado para Em Atendimento.`;
       }
@@ -140,9 +223,10 @@ export default function DetalhesAtendimento({
       });
 
       setNovoParecer('');
-      setSuccessMsg('Atendimento salvo com sucesso!');
+      setNovosAnexos([]);
+      setSuccessMsg('Atualização salva com sucesso!');
     } catch (err: any) {
-      setErrorMsg('Falha ao salvar atendimento: ' + err.message);
+      setErrorMsg('Falha ao salvar: ' + err.message);
     }
   };
 
@@ -170,34 +254,44 @@ export default function DetalhesAtendimento({
       const now = new Date().toISOString();
       let updatedParecer = ticket.parecer || '';
       const textoParecer = novoParecer.trim();
+      let hasNewParecer = false;
       
       if (textoParecer) {
         const timestamp = new Date().toLocaleString('pt-BR');
         const header = `[${timestamp}] ${currentUser.nome}:`;
         updatedParecer = updatedParecer ? `${updatedParecer}\n\n${header}\n${textoParecer}` : `${header}\n${textoParecer}`;
+        hasNewParecer = true;
       }
 
       const updatedTicket: Atendimento = {
         ...ticket,
         status: 'Encerrado',
         responsavel_id: responsavelId || (isHandler ? currentUser.id : ticket.responsavel_id),
-        parecer: isHandler ? updatedParecer : (updatedParecer || 'Chamado finalizado pelo próprio solicitante.'),
+        parecer: updatedParecer || (isHandler ? '' : 'Chamado finalizado pelo próprio solicitante.'),
         data_retorno: now,
-        data_encerramento: now
+        data_encerramento: now,
+        anexos: [...(ticket.anexos || []), ...novosAnexos]
       };
 
       await onUpdateTicket(updatedTicket);
+
+      let observacaoEncerramento = isHandler 
+          ? `Chamado finalizado e encerrado pelo DP (${currentUser.nome}). Razão: Atendido.` 
+          : `Chamado finalizado e cancelado pelo próprio solicitante (${currentUser.nome}).`;
+
+      if (hasNewParecer) observacaoEncerramento += ' (Comentário final adicionado)';
+      if (novosAnexos.length > 0) observacaoEncerramento += ` (${novosAnexos.length} anexo(s) adicionado(s))`;
 
       await addHistoryRecord({
         atendimento_id: ticket.id,
         usuario_id: currentUser.id,
         data_hora: now,
         acao: 'Encerramento de Chamado',
-        observacao: isHandler 
-          ? `Chamado finalizado e encerrado pelo DP (${currentUser.nome}). Razão: Atendido.` 
-          : `Chamado finalizado e cancelado pelo próprio solicitante (${currentUser.nome}).`
+        observacao: observacaoEncerramento
       });
 
+      setNovoParecer('');
+      setNovosAnexos([]);
       setSuccessMsg('O chamado foi encerrado com sucesso!');
     } catch (err: any) {
       setErrorMsg('Erro ao encerrar atendimento: ' + err.message);
@@ -423,8 +517,7 @@ export default function DetalhesAtendimento({
                 </div>
               )}
 
-              {(currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente') ? (
-                // ADMIN AND ATENDENTE RESPONSE FORM
+              {(currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente' || ticket.solicitante_id === currentUser.id) && (
                 <form onSubmit={handleSaveAtendimento} className="space-y-4">
                   
                   {ticket.status === 'Encerrado' ? (
@@ -435,50 +528,52 @@ export default function DetalhesAtendimento({
                       </div>
                       <div className="text-xs text-slate-600 space-y-1">
                         <p><strong>Responsável:</strong> {responsavelName}</p>
-                        {ticket.data_retorno && <p><strong>Data de Retorno:</strong> {new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} {new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
+                        {ticket.data_retorno && <p><strong>Último Retorno:</strong> {new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} {new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
                         {ticket.data_encerramento && <p><strong>Data do Fim:</strong> {new Date(ticket.data_encerramento).toLocaleDateString('pt-BR')} {new Date(ticket.data_encerramento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
                       </div>
-                      <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700">
-                        <strong>Resposta/Parecer final do DP:</strong><br/>
-                        {ticket.parecer || '(Nenhum parecer digitado)'}
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700 max-h-64 overflow-y-auto">
+                        <strong>Histórico de Interações:</strong><br/><br/>
+                        {ticket.parecer || '(Nenhuma interação registrada)'}
                       </div>
                       <p className="text-[10px] text-slate-400 italic">Chamados fechados estão em modo leitura.</p>
                     </div>
                   ) : (
                     <>
-                      {/* Select responsible administrator */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Responsável pelo Atendimento *</label>
-                          <select
-                            value={responsavelId}
-                            onChange={(e) => setResponsavelId(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 py-2.5 px-3 focus:outline-hidden cursor-pointer"
-                            required
-                          >
-                            <option value="">-- Escolher Responsável --</option>
-                            {admins.map((adm) => (
-                              <option key={adm.id} value={adm.id}>
-                                {adm.nome} ({adm.empresa})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                      {/* Select responsible administrator (ONLY HANDLERS) */}
+                      {(currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Responsável pelo Atendimento *</label>
+                            <select
+                              value={responsavelId}
+                              onChange={(e) => setResponsavelId(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 py-2.5 px-3 focus:outline-hidden cursor-pointer"
+                              required
+                            >
+                              <option value="">-- Escolher Responsável --</option>
+                              {admins.map((adm) => (
+                                <option key={adm.id} value={adm.id}>
+                                  {adm.nome} ({adm.empresa})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Data de Retorno</label>
-                          <div className="bg-slate-100 text-slate-500 rounded-xl text-xs font-bold py-2.5 px-3 border border-slate-200">
-                            {ticket.data_retorno 
-                              ? `${new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} às ${new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` 
-                              : 'Registrado ao salvar resposta'}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Data de Retorno</label>
+                            <div className="bg-slate-100 text-slate-500 rounded-xl text-xs font-bold py-2.5 px-3 border border-slate-200">
+                              {ticket.data_retorno 
+                                ? `${new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} às ${new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` 
+                                : 'Registrado ao salvar resposta'}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Histórico do Parecer Atual */}
                       {ticket.parecer && (
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Histórico de Pareceres</label>
+                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Histórico de Interações</label>
                           <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700 max-h-48 overflow-y-auto">
                             {ticket.parecer}
                           </div>
@@ -488,84 +583,122 @@ export default function DetalhesAtendimento({
                       {/* Parecer / Resposta input block */}
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                          {ticket.parecer ? 'Adicionar Novo Parecer do DP *' : 'Parecer do DP / Resposta da Solicitação *'}
+                          Adicionar Comentário / Resposta
                         </label>
                         <textarea
                           value={novoParecer}
                           onChange={(e) => setNovoParecer(e.target.value)}
+                          onPaste={(e) => {
+                            const items = e.clipboardData?.items;
+                            if (items) {
+                              const files: File[] = [];
+                              for (let i = 0; i < items.length; i++) {
+                                if (items[i].type.indexOf('image') !== -1) {
+                                  const file = items[i].getAsFile();
+                                  if (file) files.push(file);
+                                }
+                              }
+                              
+                              if (files.length > 0) {
+                                const dt = new DataTransfer();
+                                files.forEach(f => dt.items.add(f));
+                                processFiles(dt.files);
+                              }
+                            }
+                          }}
                           rows={4}
-                          placeholder="Digite aqui o parecer técnico do DP ou a resposta esclarecedora sobre esta solicitação..."
+                          placeholder="Digite aqui seu comentário, dúvida ou resposta... Você também pode colar prints diretamente aqui."
                           className="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl text-xs text-slate-800 focus:outline-hidden transition-all"
                         />
                       </div>
 
+                      {/* Upload files block */}
+                      <div className="space-y-2 pt-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Anexar Arquivos (Opcional)</label>
+                        <div
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          onClick={() => fileInputRef.current?.click()}
+                          className={`cursor-pointer border-2 border-dashed rounded-xl p-4 text-center transition-all bg-slate-50/30 hover:bg-slate-50/80 ${
+                            isDragOver 
+                              ? 'border-indigo-500 bg-indigo-50/40 text-indigo-600' 
+                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                          }`}
+                        >
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={(e) => {
+                              if (e.target.files) processFiles(e.target.files);
+                            }}
+                            multiple
+                            className="hidden"
+                          />
+                          <Paperclip className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                          <p className="text-[11px] font-bold text-slate-700">Arraste arquivos ou clique para selecionar</p>
+                        </div>
+
+                        {novosAnexos.length > 0 && (
+                          <div className="mt-2 space-y-2">
+                            {novosAnexos.map((file, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-2 bg-white rounded-md border border-slate-200">
+                                <div className="flex items-center space-x-2 min-w-0">
+                                  <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                                  <div className="min-w-0">
+                                    <p className="text-[11px] font-semibold text-slate-700 truncate max-w-[160px]">{file.name}</p>
+                                    <p className="text-[9px] text-slate-400">{file.size}</p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeNovoAnexo(idx);
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-rose-500 rounded-full hover:bg-rose-50 transition-colors"
+                                >
+                                  <XSquare className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
                       {/* Action buttons */}
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
                         <button
                           type="submit"
-                          id="admin-btn-save-reply"
+                          id="btn-save-reply"
                           className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
                         >
                           <Save className="h-4 w-4" />
-                          <span>Salvar Parecer</span>
+                          <span>Enviar Atualização</span>
                         </button>
                         <button
                           type="button"
-                          id="admin-btn-close-ticket"
+                          id="btn-close-ticket"
                           onClick={handleEncerrarAtendimento}
                           className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
                         >
-                          <CheckCircle className="h-4 w-4" />
-                          <span>Encerrar Atendimento</span>
+                          {currentUser.perfil === 'Administrador' || currentUser.perfil === 'Atendente' ? (
+                            <>
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Encerrar Atendimento</span>
+                            </>
+                          ) : (
+                            <>
+                              <XSquare className="h-4 w-4" />
+                              <span>Encerrar Minha Solicitação</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </>
                   )}
 
                 </form>
-              ) : (
-                // STANDARD USER RESPONSE INFORMATIVE VIEW
-                <div className="space-y-4">
-                  {ticket.parecer ? (
-                    <div className="space-y-4 bg-slate-50 border border-slate-200 p-5 rounded-2xl">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-indigo-600 font-bold uppercase block tracking-wider">Resposta da equipe de DP</span>
-                        <span className="text-[10px] text-slate-400">Atendido por: <strong>{responsavelName}</strong></span>
-                      </div>
-                      
-                      <div className="p-4 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">
-                        {ticket.parecer}
-                      </div>
-
-                      {ticket.data_retorno && (
-                        <div className="text-[10px] text-slate-400 text-right">
-                          Retornado em: {new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} às {new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="p-6 text-center bg-amber-50 text-amber-800 border border-amber-200 rounded-2xl">
-                      <Clock3 className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-                      <p className="text-xs font-bold">Solicitação em análise</p>
-                      <p className="text-[11px] text-amber-600 mt-1">A equipe de Departamento Pessoal já recebeu sua demanda. Aguarde o retorno com o parecer conclusivo.</p>
-                    </div>
-                  )}
-
-                  {/* Standard user closing their own open ticket */}
-                  {ticket.status !== 'Encerrado' && ticket.solicitante_id === currentUser.id && (
-                    <div className="pt-4 border-t border-slate-100 flex justify-end">
-                      <button
-                        type="button"
-                        id="user-btn-cancel-own-ticket"
-                        onClick={handleEncerrarAtendimento}
-                        className="cursor-pointer text-xs font-bold text-rose-600 hover:text-rose-700 px-4 py-2 border border-rose-200 bg-rose-50 rounded-lg transition-colors flex items-center space-x-1.5"
-                      >
-                        <XSquare className="h-4 w-4 text-rose-500" />
-                        <span>Encerrar Minha Solicitação</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
               )}
             </div>
           </div>
