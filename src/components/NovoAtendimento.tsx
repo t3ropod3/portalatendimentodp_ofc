@@ -255,7 +255,7 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
   };
  
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
+    <div className="max-w-5xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
       
       {/* Visual Header Banner */}
       <div className="bg-indigo-900 px-8 py-6 text-white border-b border-indigo-950 flex items-center space-x-4">

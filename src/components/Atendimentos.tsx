@@ -397,31 +397,31 @@ export default function Atendimentos({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-indigo-900 text-indigo-100 text-[10px] font-bold uppercase tracking-wider border-b border-indigo-800">
-                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('protocolo')}>
+                <th className="py-3 px-4 whitespace-nowrap cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('protocolo')}>
                   Protocolo {renderSortIcon('protocolo')}
                 </th>
-                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('assunto')}>
+                <th className="py-3 px-4 whitespace-nowrap cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('assunto')}>
                   Assunto / Categoria {renderSortIcon('assunto')}
                 </th>
-                <th className="py-3 px-6 text-center cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('empresa')}>
+                <th className="py-3 px-4 whitespace-nowrap text-center cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('empresa')}>
                   Empresa {renderSortIcon('empresa')}
                 </th>
-                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('solicitante')}>
+                <th className="py-3 px-4 whitespace-nowrap cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('solicitante')}>
                   Solicitante {renderSortIcon('solicitante')}
                 </th>
-                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('data_abertura')}>
+                <th className="py-3 px-4 whitespace-nowrap cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('data_abertura')}>
                   Abertura {renderSortIcon('data_abertura')}
                 </th>
-                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('data_necessaria')}>
+                <th className="py-3 px-4 whitespace-nowrap cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('data_necessaria')}>
                   Necessária {renderSortIcon('data_necessaria')}
                 </th>
-                <th className="py-3 px-6 cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('responsavel')}>
+                <th className="py-3 px-4 whitespace-nowrap cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('responsavel')}>
                   Responsável {renderSortIcon('responsavel')}
                 </th>
-                <th className="py-3 px-6 text-center cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('status')}>
+                <th className="py-3 px-4 whitespace-nowrap text-center cursor-pointer hover:bg-indigo-800 transition-colors" onClick={() => handleSort('status')}>
                   Status {renderSortIcon('status')}
                 </th>
-                <th className="py-3 px-6 text-center border-l border-indigo-800">Ações</th>
+                <th className="py-3 px-4 whitespace-nowrap text-center border-l border-indigo-800">Ações</th>
               </tr>
               <tr className="bg-indigo-900/90 border-b border-indigo-950">
                 <th className="p-2 px-4">
@@ -463,48 +463,48 @@ export default function Atendimentos({
                     className="hover:bg-indigo-50/20 transition-all cursor-pointer group"
                   >
                     {/* Protocol */}
-                    <td className="py-4 px-6 font-mono font-bold text-xs text-indigo-700 tracking-wider">
+                    <td className="py-3 px-4 whitespace-nowrap font-mono font-bold text-xs text-indigo-700 tracking-wider">
                       {ticket.protocolo}
                     </td>
                     
                     {/* Subject */}
-                    <td className="py-4 px-6 max-w-sm">
-                      <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{ticket.assunto}</p>
+                    <td className="py-3 px-4 whitespace-nowrap max-w-[280px]">
+                      <p className="text-xs font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{ticket.assunto}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5 font-medium truncate">{ticket.solicitacao}</p>
                     </td>
                     
                     {/* Company */}
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-4 whitespace-nowrap text-center">
                       {renderCompanyBadge(ticket.empresa)}
                     </td>
 
                     {/* Solicitante */}
-                    <td className="py-4 px-6 text-xs text-slate-600 font-medium truncate max-w-[124px]">
+                    <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-600 font-medium truncate max-w-[100px]">
                       {solicitanteName}
                     </td>
 
                     {/* Data Abertura */}
-                    <td className="py-4 px-6 text-xs text-slate-550 font-medium">
+                    <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-550 font-medium">
                       {new Date(ticket.data_abertura).toLocaleDateString('pt-BR')}
                     </td>
 
                     {/* Data Necessaria */}
-                    <td className="py-4 px-6 text-xs text-slate-550 font-medium">
+                    <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-550 font-medium">
                       {new Date(ticket.data_necessaria + 'T00:00:00').toLocaleDateString('pt-BR')}
                     </td>
 
                     {/* Responsavel */}
-                    <td className="py-4 px-6 text-xs text-slate-600 font-medium truncate max-w-[124px]">
+                    <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-600 font-medium truncate max-w-[100px]">
                       {responsavelName}
                     </td>
 
                     {/* Status badge */}
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-4 whitespace-nowrap text-center">
                       {renderStatusBadge(ticket.status)}
                     </td>
 
                     {/* Actions button */}
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-4 whitespace-nowrap text-center">
                       <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-slate-50 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                         <ArrowRight className="h-3.5 w-3.5" />
                       </span>
