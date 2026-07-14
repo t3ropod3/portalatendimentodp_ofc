@@ -53,8 +53,8 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const admins = useMemo(() => {
-    return getUsers().filter(u => (u.perfil === 'Administrador' || u.perfil === 'Atendente') && u.ativo === 'Sim');
+  const responsaveis = useMemo(() => {
+    return getUsers().filter(u => u.ativo === 'Sim');
   }, []);
 
   // Helper formatting file size
@@ -375,9 +375,9 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
               className="w-full bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg text-sm text-slate-800 py-2.5 px-3 transition-colors font-medium cursor-pointer focus:outline-hidden"
             >
               <option value="">-- Qualquer Atendente --</option>
-              {admins.map((adm) => (
+              {responsaveis.map((adm) => (
                 <option key={adm.id} value={adm.id}>
-                  {adm.nome} ({adm.empresa})
+                  {adm.nome} ({adm.empresa}) - {adm.perfil}
                 </option>
               ))}
             </select>

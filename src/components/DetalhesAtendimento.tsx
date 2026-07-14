@@ -133,9 +133,9 @@ export default function DetalhesAtendimento({
     }
   };
 
-  // Get active handlers (Administradores/Atendentes) list for allocation
+  // Get active handlers list for allocation
   const admins = useMemo(() => {
-    return getUsers().filter(u => (u.perfil === 'Administrador' || u.perfil === 'Atendente') && u.ativo === 'Sim');
+    return getUsers().filter(u => u.ativo === 'Sim');
   }, []);
 
   // Filter histories associated with this ticket
@@ -331,41 +331,77 @@ export default function DetalhesAtendimento({
     const parts = textoOriginal.split(/(?=\[\d{1,2}\/\d{1,2}\/\d{4}.*?\] )/g);
 
     return (
-      <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-        {parts.map((part, idx) => {
-          if (!part.trim()) return null;
-          
-          const match = part.match(/^\[(.*?)\] (.*?):\n([\s\S]*)$/);
-          if (match) {
-            const dateStr = match[1];
-            const name = match[2];
-            const text = match[3];
+      <div className="relative py-6 max-h-[500px] overflow-y-auto px-2 custom-scrollbar">
+        {/* Linha vertical central */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300 -translate-x-1/2"></div>
+        
+        <div className="space-y-8">
+          {parts.map((part, idx) => {
+            if (!part.trim()) return null;
             
-            const isMe = name.trim() === currentUser.nome.trim();
+            const match = part.match(/^\[(.*?)\] (.*?):\n([\s\S]*)$/);
+            
+            let dateStr = 'Data';
+            let timeStr = 'Hora';
+            let name = 'Sistema';
+            let text = part.trim();
+            
+            if (match) {
+              const fullDateStr = match[1]; // e.g. "13/07/2026, 11:15:33"
+              name = match[2];
+              text = match[3].trim();
+              
+              const dateParts = fullDateStr.split(/[\s,]+/);
+              dateStr = dateParts[0];
+              timeStr = dateParts.length > 1 ? dateParts[1] : '';
+              // se tiver milissegundos remove (e.g. 11:15:33 -> 11:15)
+              timeStr = timeStr.slice(0, 5); 
+            }
+
+            const isRight = idx % 2 === 1; // Alternating sides
             
             return (
-              <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[90%] rounded-xl p-3 ${isMe ? 'bg-indigo-50 border border-indigo-100 rounded-br-sm' : 'bg-white border border-slate-200 rounded-bl-sm shadow-xs'}`}>
-                  <div className={`flex items-center justify-between space-x-4 border-b ${isMe ? 'border-indigo-100/60' : 'border-slate-100'} pb-1.5 mb-1.5`}>
-                    <span className="font-bold text-[11px] text-slate-700">{name}</span>
-                    <span className="text-[10px] text-slate-400">{dateStr}</span>
+              <div key={idx} className={`relative flex items-start w-full ${isRight ? 'justify-end' : 'justify-start'}`}>
+                
+                {/* Avatar e ponto central */}
+                <div className="absolute left-1/2 top-0 -translate-x-1/2 flex flex-col items-center justify-center bg-slate-100 rounded-full p-1 border border-slate-300 z-10 shadow-xs">
+                  <div className="bg-slate-300 text-white p-1 rounded-full">
+                    <User className="w-4 h-4" />
                   </div>
-                  <div className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
-                    {text.trim()}
+                </div>
+
+                <div className={`w-1/2 relative ${isRight ? 'pl-8' : 'pr-8'}`}>
+                  {/* Caixa de Comentário */}
+                  <div className={`flex flex-col bg-white border border-[#6dbfb3]/30 rounded-sm shadow-xs relative`}>
+                    
+                    {/* Header (teal) */}
+                    <div className="bg-[#6dbfb3] text-slate-800 px-3 py-1.5 flex justify-between items-center relative">
+                      <span className="text-xs">{dateStr} - {name}</span>
+                      
+                      {/* Setinha (Triangle) */}
+                      {isRight ? (
+                        <div className="absolute top-2 -left-2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[8px] border-r-[#6dbfb3]"></div>
+                      ) : (
+                        <div className="absolute top-2 -right-2 w-0 h-0 border-y-[6px] border-y-transparent border-l-[8px] border-l-[#6dbfb3]"></div>
+                      )}
+                    </div>
+
+                    {/* Corpo da mensagem */}
+                    <div className="p-3 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      {text}
+                    </div>
+                    
+                    {/* Footer da caixa */}
+                    <div className="px-3 pb-2 pt-1 flex justify-between items-center mt-auto">
+                      <span className="text-[#c168af] text-[11px] cursor-pointer hover:underline transition-all">Expandir.</span>
+                      <span className="text-slate-600 font-medium text-[11px]">{timeStr}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             );
-          } else {
-            return (
-              <div key={idx} className="flex justify-start">
-                <div className="max-w-[90%] rounded-xl p-3 bg-white border border-slate-200 rounded-bl-sm shadow-xs text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
-                  {part.trim()}
-                </div>
-              </div>
-            );
-          }
-        })}
+          })}
+        </div>
       </div>
     );
   };

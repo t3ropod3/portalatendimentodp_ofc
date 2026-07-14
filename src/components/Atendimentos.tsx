@@ -70,27 +70,45 @@ export default function Atendimentos({
 
   // Compute tickets accessible for count badges dynamically
   const ticketsForCounts = useMemo(() => {
-    if (currentUser.perfil === 'Solicitante') {
-      return tickets.filter(t => t.solicitante_id === currentUser.id);
+    if (currentUser.perfil === 'Administrador') {
+      return tickets;
     }
-    return tickets;
+    
+    return tickets.filter(ticket => {
+      // O solicitante original sempre pode ver o seu próprio chamado
+      if (ticket.solicitante_id === currentUser.id) return true;
+
+      // Se o chamado tem um responsável definido
+      if (ticket.responsavel_id) {
+        // Apenas o responsável pode ver (além do admin/solicitante original)
+        return ticket.responsavel_id === currentUser.id;
+      } else {
+        // Se não tem responsável definido, Atendentes podem ver
+        return currentUser.perfil === 'Atendente';
+      }
+    });
   }, [tickets, currentUser]);
 
   // Filter & Search Logic
   const filteredTickets = useMemo(() => {
+    // 1. Base list according to user profile rules
     let list = [...tickets];
 
-    // 1. Role-based visibility restriction
-    if (currentUser.perfil === 'Solicitante') {
-      // Solicitante can ONLY see their own tickets
-      list = list.filter(ticket => ticket.solicitante_id === currentUser.id);
-    } else if (currentUser.perfil === 'Atendente') {
-      // Atendente can only see tickets assigned to them, unassigned tickets, or tickets they created
-      list = list.filter(ticket => 
-        !ticket.responsavel_id || 
-        ticket.responsavel_id === currentUser.id || 
-        ticket.solicitante_id === currentUser.id
-      );
+    // "Ao selecionar alguem, apenas esta pessoa (além dos usuários administradores) devem enchegar este chamado para tratamento"
+    if (currentUser.perfil !== 'Administrador') {
+      list = list.filter(ticket => {
+        // O solicitante original sempre pode ver o seu próprio chamado
+        if (ticket.solicitante_id === currentUser.id) return true;
+
+        // Se o chamado tem um responsável definido
+        if (ticket.responsavel_id) {
+          // Apenas o responsável pode ver (além do admin/solicitante original)
+          return ticket.responsavel_id === currentUser.id;
+        } else {
+          // Se não tem responsável definido, Atendentes podem ver
+          return currentUser.perfil === 'Atendente';
+        }
+      });
     }
 
     // 2. Active filter selection
