@@ -325,6 +325,51 @@ export default function DetalhesAtendimento({
     }
   };
 
+  const renderHistoricoParecer = (textoOriginal: string | undefined) => {
+    if (!textoOriginal) return <p className="text-slate-500 italic text-xs">Nenhuma interação registrada</p>;
+
+    const parts = textoOriginal.split(/(?=\[\d{1,2}\/\d{1,2}\/\d{4}.*?\] )/g);
+
+    return (
+      <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+        {parts.map((part, idx) => {
+          if (!part.trim()) return null;
+          
+          const match = part.match(/^\[(.*?)\] (.*?):\n([\s\S]*)$/);
+          if (match) {
+            const dateStr = match[1];
+            const name = match[2];
+            const text = match[3];
+            
+            const isMe = name.trim() === currentUser.nome.trim();
+            
+            return (
+              <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[90%] rounded-xl p-3 ${isMe ? 'bg-indigo-50 border border-indigo-100 rounded-br-sm' : 'bg-white border border-slate-200 rounded-bl-sm shadow-xs'}`}>
+                  <div className={`flex items-center justify-between space-x-4 border-b ${isMe ? 'border-indigo-100/60' : 'border-slate-100'} pb-1.5 mb-1.5`}>
+                    <span className="font-bold text-[11px] text-slate-700">{name}</span>
+                    <span className="text-[10px] text-slate-400">{dateStr}</span>
+                  </div>
+                  <div className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                    {text.trim()}
+                  </div>
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div key={idx} className="flex justify-start">
+                <div className="max-w-[90%] rounded-xl p-3 bg-white border border-slate-200 rounded-bl-sm shadow-xs text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  {part.trim()}
+                </div>
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl mx-auto relative">
       
@@ -531,9 +576,11 @@ export default function DetalhesAtendimento({
                         {ticket.data_retorno && <p><strong>Último Retorno:</strong> {new Date(ticket.data_retorno).toLocaleDateString('pt-BR')} {new Date(ticket.data_retorno).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
                         {ticket.data_encerramento && <p><strong>Data do Fim:</strong> {new Date(ticket.data_encerramento).toLocaleDateString('pt-BR')} {new Date(ticket.data_encerramento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
                       </div>
-                      <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700 max-h-64 overflow-y-auto">
-                        <strong>Histórico de Interações:</strong><br/><br/>
-                        {ticket.parecer || '(Nenhuma interação registrada)'}
+                      <div className="pt-2">
+                        <strong className="block text-xs text-slate-700 mb-2">Histórico de Interações:</strong>
+                        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200">
+                           {renderHistoricoParecer(ticket.parecer)}
+                        </div>
                       </div>
                       <p className="text-[10px] text-slate-400 italic">Chamados fechados estão em modo leitura.</p>
                     </div>
@@ -574,8 +621,8 @@ export default function DetalhesAtendimento({
                       {ticket.parecer && (
                         <div className="space-y-1.5">
                           <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Histórico de Interações</label>
-                          <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs leading-relaxed whitespace-pre-wrap text-slate-700 max-h-48 overflow-y-auto">
-                            {ticket.parecer}
+                          <div className="bg-slate-50/50 p-3 rounded-xl border border-slate-200">
+                             {renderHistoricoParecer(ticket.parecer)}
                           </div>
                         </div>
                       )}

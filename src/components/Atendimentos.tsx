@@ -84,6 +84,13 @@ export default function Atendimentos({
     if (currentUser.perfil === 'Solicitante') {
       // Solicitante can ONLY see their own tickets
       list = list.filter(ticket => ticket.solicitante_id === currentUser.id);
+    } else if (currentUser.perfil === 'Atendente') {
+      // Atendente can only see tickets assigned to them, unassigned tickets, or tickets they created
+      list = list.filter(ticket => 
+        !ticket.responsavel_id || 
+        ticket.responsavel_id === currentUser.id || 
+        ticket.solicitante_id === currentUser.id
+      );
     }
 
     // 2. Active filter selection

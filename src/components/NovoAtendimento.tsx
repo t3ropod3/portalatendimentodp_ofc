@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { 
   PlusCircle, 
   Building2, 
@@ -18,7 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Usuario, Anexo } from '../types';
-import { createTicket } from '../apiServices';
+import { createTicket, getUsers } from '../apiServices';
 
 interface NovoAtendimentoProps {
   currentUser: Usuario;
@@ -45,12 +45,17 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
   const [solicitacao, setSolicitacao] = useState(CATEGORIAS_DP[0]);
   const [descricao, setDescricao] = useState('');
   const [anexos, setAnexos] = useState<Anexo[]>([]);
+  const [responsavelId, setResponsavelId] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successProtocol, setSuccessProtocol] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const admins = useMemo(() => {
+    return getUsers().filter(u => (u.perfil === 'Administrador' || u.perfil === 'Atendente') && u.ativo === 'Sim');
+  }, []);
 
   // Helper formatting file size
   const formatBytes = (bytes: number): string => {
@@ -165,7 +170,8 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
         solicitacao,
         descricao: descricao.trim(),
         anexos,
-        solicitante_id: currentUser.id
+        solicitante_id: currentUser.id,
+        ...(responsavelId ? { responsavel_id: responsavelId } : {})
       });
 
       setSuccessProtocol(ticket.protocolo);
@@ -175,6 +181,7 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
       setDataNecessaria('');
       setDescricao('');
       setAnexos([]);
+      setResponsavelId('');
     } catch (err: any) {
       setErrorMessage('Falha ao processar solicitação: ' + err.message);
     } finally {
@@ -321,8 +328,8 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
 
         </div>
 
-        {/* Second row: Request classification and Date limit */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Second row: Request classification, Date limit, and Direct assignment */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Categorization (Qual solicitação?) */}
           <div className="space-y-1.5">
@@ -357,6 +364,23 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
                 required
               />
             </div>
+          </div>
+
+          {/* Direct assignment (Direcionar Para) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Direcionar Para (Opcional)</label>
+            <select
+              value={responsavelId}
+              onChange={(e) => setResponsavelId(e.target.value)}
+              className="w-full bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg text-sm text-slate-800 py-2.5 px-3 transition-colors font-medium cursor-pointer focus:outline-hidden"
+            >
+              <option value="">-- Qualquer Atendente --</option>
+              {admins.map((adm) => (
+                <option key={adm.id} value={adm.id}>
+                  {adm.nome} ({adm.empresa})
+                </option>
+              ))}
+            </select>
           </div>
 
         </div>
