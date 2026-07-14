@@ -135,7 +135,7 @@ export default function DetalhesAtendimento({
 
   // Get active handlers list for allocation
   const admins = useMemo(() => {
-    return getUsers().filter(u => u.ativo === 'Sim');
+    return getUsers().filter(u => u.ativo === 'Sim' && !u.nome.toLowerCase().includes('elder'));
   }, []);
 
   // Filter histories associated with this ticket

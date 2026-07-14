@@ -54,7 +54,7 @@ export default function NovoAtendimento({ currentUser, onSuccess }: NovoAtendime
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const responsaveis = useMemo(() => {
-    return getUsers().filter(u => u.ativo === 'Sim');
+    return getUsers().filter(u => u.ativo === 'Sim' && u.nome.toLowerCase() !== 'elder' && !u.nome.toLowerCase().includes('elder'));
   }, []);
 
   // Helper formatting file size
