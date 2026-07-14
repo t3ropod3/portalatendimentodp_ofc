@@ -178,7 +178,8 @@ export default function DetalhesAtendimento({
       
       if (textoParecer) {
         const timestamp = new Date().toLocaleString('pt-BR');
-        const header = `[${timestamp}] ${currentUser.nome}:`;
+        const papel = isHandler ? 'Responsável' : 'Solicitante';
+        const header = `[${timestamp}] ${currentUser.nome} (${papel}):`;
         updatedParecer = updatedParecer ? `${updatedParecer}\n\n${header}\n${textoParecer}` : `${header}\n${textoParecer}`;
         hasNewParecer = true;
       }
@@ -258,7 +259,8 @@ export default function DetalhesAtendimento({
       
       if (textoParecer) {
         const timestamp = new Date().toLocaleString('pt-BR');
-        const header = `[${timestamp}] ${currentUser.nome}:`;
+        const papel = isHandler ? 'Responsável' : 'Solicitante';
+        const header = `[${timestamp}] ${currentUser.nome} (${papel}):`;
         updatedParecer = updatedParecer ? `${updatedParecer}\n\n${header}\n${textoParecer}` : `${header}\n${textoParecer}`;
         hasNewParecer = true;
       }
@@ -346,6 +348,8 @@ export default function DetalhesAtendimento({
             let name = 'Sistema';
             let text = part.trim();
             
+            let isRight = false;
+
             if (match) {
               const fullDateStr = match[1]; // e.g. "13/07/2026, 11:15:33"
               name = match[2];
@@ -358,7 +362,19 @@ export default function DetalhesAtendimento({
               timeStr = timeStr.slice(0, 5); 
             }
 
-            const isRight = idx % 2 === 1; // Alternating sides
+            if (name.includes('(Responsável)')) {
+              isRight = true;
+              name = name.replace(' (Responsável)', '');
+            } else if (name.includes('(Solicitante)')) {
+              isRight = false;
+              name = name.replace(' (Solicitante)', '');
+            } else {
+              // Legacy fallback
+              isRight = name.trim() !== solicitanteName.trim();
+              if (name.trim() === solicitanteName.trim() && name.trim() === responsavelName.trim()) {
+                isRight = idx % 2 === 1; // Alternating sides se for ambíguo em chamados antigos
+              }
+            }
             
             return (
               <div key={idx} className={`relative flex items-start w-full ${isRight ? 'justify-end' : 'justify-start'}`}>
