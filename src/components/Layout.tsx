@@ -42,8 +42,8 @@ export default function Layout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedProfiles: ['Administrador', 'Atendente', 'Solicitante'] },
-    { id: 'novo', label: 'Novo Atendimento', icon: PlusCircle, allowedProfiles: ['Administrador', 'Solicitante'] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, allowedProfiles: ['Administrador', 'Atendente'] },
+    { id: 'novo', label: 'Novo Atendimento', icon: PlusCircle, allowedProfiles: ['Administrador', 'Atendente', 'Solicitante'] },
     { id: 'atendimentos', label: 'Atendimentos', icon: Ticket, allowedProfiles: ['Administrador', 'Atendente', 'Solicitante'] },
     { id: 'usuarios', label: 'Gestão de Usuários', icon: Users, allowedProfiles: ['Administrador'] },
     { id: 'opcoes', label: 'Opções', icon: Database, allowedProfiles: ['Administrador'] }
