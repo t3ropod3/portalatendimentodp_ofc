@@ -144,14 +144,7 @@ export default function App() {
   const [notifications, setNotifications] = useState<Notificacao[]>([]);
 
   // Navigation Logic
-  const [activeTab, setActiveTab] = useState(() => {
-    const cached = localStorage.getItem('dp_chamados_session');
-    if (cached) {
-      const user = JSON.parse(cached);
-      return user.perfil === 'Solicitante' ? 'novo' : 'dashboard';
-    }
-    return 'dashboard';
-  });
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedTicket, setSelectedTicket] = useState<Atendimento | null>(null);
   const [atendimentosFilter, setAtendimentosFilter] = useState<FilterType>('all');
 
@@ -279,7 +272,7 @@ export default function App() {
       // Success Authentication
       setCurrentUser(user);
       localStorage.setItem('dp_chamados_session', JSON.stringify(user));
-      setActiveTab(user.perfil === 'Solicitante' ? 'novo' : 'dashboard');
+      setActiveTab('dashboard');
       setSelectedTicket(null);
     } catch (err) {
       setLoginError('Erro de comunicação com o servidor.');
@@ -296,7 +289,7 @@ export default function App() {
     if (user && user.ativo === 'Sim') {
       setCurrentUser(user);
       localStorage.setItem('dp_chamados_session', JSON.stringify(user));
-      setActiveTab(user.perfil === 'Solicitante' ? 'novo' : 'dashboard');
+      setActiveTab('dashboard');
       setSelectedTicket(null);
     }
   };
@@ -305,7 +298,7 @@ export default function App() {
     setCurrentUser(null);
     localStorage.removeItem('dp_chamados_session');
     setSelectedTicket(null);
-    setActiveTab(user.perfil === 'Solicitante' ? 'novo' : 'dashboard');
+    setActiveTab('dashboard');
     setNewPassword('');
     setConfirmPassword('');
     setPasswordError('');
@@ -630,7 +623,7 @@ export default function App() {
           onRefreshNotifications={refreshDatabase}
         >
           {/* TAB ROUTING AND SUBDETAILS MODES */}
-          {activeTab === 'dashboard' && currentUser.perfil !== 'Solicitante' && (
+          {activeTab === 'dashboard' && (
             <Dashboard 
               tickets={tickets} 
               users={users} 
@@ -694,7 +687,7 @@ export default function App() {
               <h4 className="text-base font-bold text-slate-900">Acesso Negado</h4>
               <p className="text-xs text-slate-500">Sua conta não possui permissão para acessar este painel.</p>
               <button 
-                onClick={() => setActiveTab(currentUser.perfil === 'Solicitante' ? 'atendimentos' : 'dashboard')}
+                onClick={() => setActiveTab('dashboard')}
                 className="px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
               >
                 Voltar
@@ -702,21 +695,6 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'dashboard' && currentUser.perfil === 'Solicitante' && (
-            <div className="p-8 text-center bg-white border border-slate-200 rounded-xl space-y-4 max-w-md mx-auto my-12 shadow-sm">
-              <div className="w-12 h-12 bg-rose-50 border border-rose-200 text-rose-600 rounded-full flex items-center justify-center mx-auto">
-                <AlertCircle className="w-6 h-6 animate-pulse-slow" />
-              </div>
-              <h4 className="text-base font-bold text-slate-900">Acesso Negado</h4>
-              <p className="text-xs text-slate-500">O perfil Solicitante não possui acesso ao Dashboard geral.</p>
-              <button 
-                onClick={() => setActiveTab('atendimentos')}
-                className="px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                Ver Meus Atendimentos
-              </button>
-            </div>
-          )}
 
         </Layout>
       )}
